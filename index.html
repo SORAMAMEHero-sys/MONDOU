@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
+<title>モンドウ</title>
+
+<style>
+@font-face {
+    font-family: "Keifont";
+    src: url("./keifont.ttf") format("truetype");
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: "Keifont", sans-serif;
+    user-select: none;
+    color: white;
+}
+
+/* =========================
+   ゲーム画面
+========================= */
+
+#game {
+    width: 100%;
+    height: 100dvh;
+    min-height: 500px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    transition: background 0.4s;
+}
+
+/* =========================
+   敵エリア
+========================= */
+
+#enemy-area {
+    height: 50%;
+    min-height: 250px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding-top: 5vh;
+}
+
+/* =========================
+   HP
+========================= */
+
+#hp-box {
+    width: min(80%, 500px);
+    text-align: center;
+}
+
+#hp-text {
+    font-size: clamp(22px, 6vw, 36px);
+
+    text-shadow:
+        2px 2px 0 rgba(0,0,0,0.4);
+}
+
+#hp-background {
+    width: 100%;
+    height: 24px;
+
+    margin-top: 8px;
+
+    border: 3px solid white;
+    border-radius: 20px;
+
+    background: rgba(0,0,0,0.35);
+
+    overflow: hidden;
+}
+
+#hp-bar {
+    width: 100%;
+    height: 100%;
+
+    background: #ef4444;
+
+    transition: width 0.2s;
+}
+
+/* =========================
+   敵
+========================= */
+
+#enemy {
+    margin-top: 4vh;
+
+    width: min(45vw, 220px);
+    height: min(45vw, 220px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: clamp(90px, 25vw, 160px);
+
+    filter:
+        drop-shadow(
+            0 12px 5px
+            rgba(0,0,0,0.25)
+        );
+}
+
+.hit {
+    animation: hit 0.15s;
+}
+
+@keyframes hit {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform:
+            scale(0.85)
+            rotate(-5deg);
+        filter:
+            brightness(2)
+            drop-shadow(
+                0 12px 5px
+                rgba(0,0,0,0.25)
+            );
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* =========================
+   ダメージ
+========================= */
+
+.damage {
+    position: fixed;
+
+    pointer-events: none;
+
+    font-size: clamp(30px, 9vw, 60px);
+
+    font-weight: bold;
+
+    text-shadow:
+        3px 3px 0 black;
+
+    animation:
+        damage 0.8s
+        forwards;
+
+    z-index: 20;
+}
+
+@keyframes damage {
+    0% {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(0.8);
+    }
+
+    30% {
+        transform:
+            translateY(-25px)
+            scale(1.15);
+    }
+
+    100% {
+        opacity: 0;
+        transform:
+            translateY(-100px)
+            scale(1);
+    }
+}
+
+/* =========================
+   攻撃エリア
+========================= */
+
+#battle-area {
+    flex: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* =========================
+   攻撃ボタン
+========================= */
+
+#attack-button {
+    width: min(38vw, 190px);
+    height: min(38vw, 190px);
+
+    border: 0;
+    border-radius: 50%;
+
+    background: #f1f1f1;
+
+    font-size: clamp(65px, 18vw, 100px);
+
+    box-shadow:
+        0 10px 0 #999,
+        0 15px 25px
+        rgba(0,0,0,0.35);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.06s,
+        box-shadow 0.06s;
+}
+
+#attack-button:active {
+    transform: translateY(8px) scale(0.95);
+
+    box-shadow:
+        0 2px 0 #999,
+        0 5px 10px
+        rgba(0,0,0,0.3);
+}
+
+/* =========================
+   下部
+========================= */
+
+#bottom-area {
+    padding:
+        8px
+        10px
+        calc(8px + env(safe-area-inset-bottom))
+        10px;
+}
+
+#gold {
+    text-align: center;
+
+    font-size: clamp(18px, 5vw, 28px);
+
+    margin-bottom: 8px;
+
+    text-shadow:
+        2px 2px 0
+        rgba(0,0,0,0.4);
+}
+
+#menu-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.menu-button {
+    flex: 1;
+
+    min-height: 62px;
+
+    border: 0;
+    border-radius: 16px;
+
+    background:
+        rgba(0,0,0,0.45);
+
+    color: white;
+
+    font-family:
+        "Keifont",
+        sans-serif;
+
+    font-size:
+        clamp(17px, 5vw, 27px);
+
+    box-shadow:
+        0 5px 0
+        rgba(0,0,0,0.35);
+
+    cursor: pointer;
+}
+
+.menu-button:active {
+    transform: translateY(4px);
+
+    box-shadow:
+        0 1px 0
+        rgba(0,0,0,0.35);
+}
+
+/* =========================
+   モーダル
+========================= */
+
+.modal {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    background:
+        rgba(0,0,0,0.65);
+
+    z-index: 100;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-box {
+    width: min(90%, 450px);
+
+    padding: 25px;
+
+    border-radius: 22px;
+
+    background: white;
+
+    color: #222;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.5);
+}
+
+.modal-title {
+    font-size: 32px;
+    margin-bottom: 18px;
+}
+
+.modal-button {
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 13px;
+
+    border: 0;
+    border-radius: 14px;
+
+    font-family:
+        "Keifont",
+        sans-serif;
+
+    font-size: 21px;
+
+    cursor: pointer;
+}
+
+/* =========================
+   撃破表示
+========================= */
+
+#defeat {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    background:
+        rgba(0,0,0,0.7);
+
+    z-index: 90;
+}
+
+#defeat.show {
+    display: flex;
+}
+
+#defeat-title {
+    font-size: clamp(45px, 14vw, 80px);
+
+    text-shadow:
+        4px 4px 0 black;
+}
+
+#defeat-text {
+    font-size:
+        clamp(20px, 6vw, 32px);
+}
+
+/* =========================
+   小さい画面
+========================= */
+
+@media (max-height: 650px) {
+    #enemy-area {
+        height: 45%;
+        padding-top: 2vh;
+    }
+
+    #enemy {
+        margin-top: 1vh;
+    }
+
+    #attack-button {
+        width: 125px;
+        height: 125px;
+        font-size: 65px;
+    }
+
+    .menu-button {
+        min-height: 50px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <!-- =====================
+         敵
+    ====================== -->
+
+    <section id="enemy-area">
+
+        <div id="hp-box">
+
+            <div id="hp-text">
+                HP 6000 / 6000
+            </div>
+
+            <div id="hp-background">
+                <div id="hp-bar"></div>
+            </div>
+
+        </div>
+
+        <div id="enemy">👾</div>
+
+    </section>
+
+
+    <!-- =====================
+         攻撃
+    ====================== -->
+
+    <section id="battle-area">
+
+        <button id="attack-button">
+            ⚔️
+        </button>
+
+    </section>
+
+
+    <!-- =====================
+         下部UI
+    ====================== -->
+
+    <section id="bottom-area">
+
+        <div id="gold">
+            💰 0 G
+        </div>
+
+        <div id="menu-buttons">
+
+            <button
+                class="menu-button"
+                id="upgrade-button">
+                💪 強化
+            </button>
+
+            <button
+                class="menu-button"
+                id="bag-button">
+                👜 バッグ
+            </button>
+
+            <button
+                class="menu-button"
+                id="shop-button">
+                🛍️ ショップ
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- =====================
+     強化
+====================== -->
+
+<div
+    class="modal"
+    id="upgrade-modal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            💪 強化
+        </div>
+
+        <div id="upgrade-info"></div>
+
+        <button
+            class="modal-button"
+            id="upgrade-buy">
+            攻撃力を強化
+        </button>
+
+        <button
+            class="modal-button"
+            onclick="closeModals()">
+            閉じる
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     バッグ
+====================== -->
+
+<div
+    class="modal"
+    id="bag-modal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            👜 バッグ
+        </div>
+
+        <p>
+            現在アイテムはありません。
+        </p>
+
+        <button
+            class="modal-button"
+            onclick="closeModals()">
+            閉じる
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     ショップ
+====================== -->
+
+<div
+    class="modal"
+    id="shop-modal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            🛍️ ショップ
+        </div>
+
+        <p>
+            ショップは準備中！
+        </p>
+
+        <button
+            class="modal-button"
+            onclick="closeModals()">
+            閉じる
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     撃破
+====================== -->
+
+<div id="defeat">
+
+    <div id="defeat-title">
+        撃破！
+    </div>
+
+    <div id="defeat-text">
+        次のモンスターが現れた！
+    </div>
+
+</div>
+
+
+<script>
+/* =====================================================
+   セーブデータ
+===================================================== */
+
+const SAVE_KEY = "mondou_save";
+
+
+const gameData = {
+
+    chapter: 1,
+
+    monsterNumber: 1,
+
+    monsterHP: 6000,
+
+    monsterMaxHP: 6000,
+
+    attackPower: 10,
+
+    gold: 0,
+
+    upgradeCost: 10
+};
+
+
+/* =====================================================
+   モンスター
+===================================================== */
+
+const monsters = [
+    "👾",
+    "🟢",
+    "👺",
+    "🐺",
+    "🐉"
+];
+
+
+/* =====================================================
+   章の背景
+===================================================== */
+
+const chapterBackgrounds = {
+
+    1: `
+        linear-gradient(
+            to bottom,
+            #87ceeb 0%,
+            #bdefff 60%,
+            #72c95c 60%,
+            #4e9d3d 100%
+        )
+    `,
+
+    2: `
+        linear-gradient(
+            to bottom,
+            #263238 0%,
+            #455a64 60%,
+            #263238 60%,
+            #111 100%
+        )
+    `,
+
+    3: `
+        linear-gradient(
+            to bottom,
+            #4527a0 0%,
+            #7e57c2 55%,
+            #311b92 55%,
+            #12005e 100%
+        )
+    `
+};
+
+
+/* =====================================================
+   DOM
+===================================================== */
+
+const game =
+    document.getElementById("game");
+
+const hpText =
+    document.getElementById("hp-text");
+
+const hpBar =
+    document.getElementById("hp-bar");
+
+const enemy =
+    document.getElementById("enemy");
+
+const goldText =
+    document.getElementById("gold");
+
+const upgradeInfo =
+    document.getElementById("upgrade-info");
+
+
+/* =====================================================
+   セーブ
+===================================================== */
+
+function saveGame() {
+
+    localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(gameData)
+    );
+}
+
+
+/* =====================================================
+   ロード
+===================================================== */
+
+function loadGame() {
+
+    const saved =
+        localStorage.getItem(SAVE_KEY);
+
+    if (!saved) {
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(saved);
+
+        if (
+            typeof data !== "object" ||
+            data === null
+        ) {
+            return;
+        }
+
+        Object.assign(
+            gameData,
+            data
+        );
+
+    } catch (error) {
+
+        console.error(
+            "セーブデータの読み込みに失敗:",
+            error
+        );
+
+    }
+}
+
+
+/* =====================================================
+   UI更新
+===================================================== */
+
+function updateUI() {
+
+    hpText.textContent =
+        `HP ${gameData.monsterHP} / ${gameData.monsterMaxHP}`;
+
+
+    const percentage =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                gameData.monsterHP /
+                gameData.monsterMaxHP *
+                100
+            )
+        );
+
+
+    hpBar.style.width =
+        `${percentage}%`;
+
+
+    goldText.textContent =
+        `💰 ${gameData.gold} G`;
+
+
+    upgradeInfo.innerHTML =
+        `
+        攻撃力：${gameData.attackPower}<br>
+        次の強化：${gameData.upgradeCost} G
+        `;
+
+
+    game.style.background =
+        chapterBackgrounds[
+            gameData.chapter
+        ] ||
+        chapterBackgrounds[1];
+
+
+    const index =
+        (
+            gameData.monsterNumber - 1
+        ) % monsters.length;
+
+
+    enemy.textContent =
+        monsters[index];
+}
+
+
+/* =====================================================
+   攻撃
+===================================================== */
+
+document
+    .getElementById("attack-button")
+    .addEventListener(
+        "click",
+        attack
+    );
+
+
+function attack() {
+
+    if (gameData.monsterHP <= 0) {
+        return;
+    }
+
+
+    const damage =
+        gameData.attackPower;
+
+
+    gameData.monsterHP =
+        Math.max(
+            0,
+            gameData.monsterHP - damage
+        );
+
+
+    /* 敵の被弾アニメーション */
+
+    enemy.classList.remove("hit");
+
+    void enemy.offsetWidth;
+
+    enemy.classList.add("hit");
+
+
+    /* ダメージ表示 */
+
+    showDamage(damage);
+
+
+    updateUI();
+
+    saveGame();
+
+
+    /* 撃破 */
+
+    if (gameData.monsterHP <= 0) {
+
+        defeatMonster();
+    }
+}
+
+
+/* =====================================================
+   ダメージ表示
+===================================================== */
+
+function showDamage(damage) {
+
+    const element =
+        document.createElement("div");
+
+
+    element.className =
+        "damage";
+
+
+    element.textContent =
+        `-${damage}`;
+
+
+    const rect =
+        enemy.getBoundingClientRect();
+
+
+    element.style.left =
+        (
+            rect.left +
+            rect.width / 2 -
+            30 +
+            Math.random() * 60
+        ) + "px";
+
+
+    element.style.top =
+        (
+            rect.top +
+            rect.height / 2
+        ) + "px";
+
+
+    document.body.appendChild(
+        element
+    );
+
+
+    setTimeout(
+        () => element.remove(),
+        800
+    );
+}
+
+
+/* =====================================================
+   撃破
+===================================================== */
+
+function defeatMonster() {
+
+    /* 報酬 */
+
+    gameData.gold += 10;
+
+
+    saveGame();
+
+
+    const screen =
+        document.getElementById(
+            "defeat"
+        );
+
+
+    screen.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            screen.classList.remove(
+                "show"
+            );
+
+            nextMonster();
+
+        },
+        900
+    );
+}
+
+
+/* =====================================================
+   次のモンスター
+===================================================== */
+
+function nextMonster() {
+
+    gameData.monsterNumber++;
+
+
+    /*
+       モンスター番号に応じて
+       HPを増やす
+    */
+
+    gameData.monsterMaxHP =
+        Math.floor(
+            6000 *
+            Math.pow(
+                1.15,
+                gameData.monsterNumber - 1
+            )
+        );
+
+
+    gameData.monsterHP =
+        gameData.monsterMaxHP;
+
+
+    updateUI();
+
+    saveGame();
+}
+
+
+/* =====================================================
+   強化
+===================================================== */
+
+document
+    .getElementById("upgrade-buy")
+    .addEventListener(
+        "click",
+        upgrade
+    );
+
+
+function upgrade() {
+
+    if (
+        gameData.gold <
+        gameData.upgradeCost
+    ) {
+
+        alert(
+            "ゴールドが足りない！"
+        );
+
+        return;
+    }
+
+
+    gameData.gold -=
+        gameData.upgradeCost;
+
+
+    gameData.attackPower += 5;
+
+
+    gameData.upgradeCost =
+        Math.floor(
+            gameData.upgradeCost *
+            1.5
+        );
+
+
+    updateUI();
+
+    saveGame();
+}
+
+
+/* =====================================================
+   モーダル
+===================================================== */
+
+function openModal(id) {
+
+    document
+        .getElementById(id)
+        .classList.add("show");
+}
+
+
+function closeModals() {
+
+    document
+        .querySelectorAll(".modal")
+        .forEach(
+            modal =>
+                modal.classList.remove(
+                    "show"
+                )
+        );
+}
+
+
+/* =====================================================
+   メニューボタン
+===================================================== */
+
+document
+    .getElementById("upgrade-button")
+    .addEventListener(
+        "click",
+        () => openModal(
+            "upgrade-modal"
+        )
+    );
+
+
+document
+    .getElementById("bag-button")
+    .addEventListener(
+        "click",
+        () => openModal(
+            "bag-modal"
+        )
+    );
+
+
+document
+    .getElementById("shop-button")
+    .addEventListener(
+        "click",
+        () => openModal(
+            "shop-modal"
+        )
+    );
+
+
+/* =====================================================
+   起動
+===================================================== */
+
+loadGame();
+
+updateUI();
+
+</script>
+
+</body>
+</html>
