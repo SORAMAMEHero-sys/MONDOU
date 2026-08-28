@@ -2,1571 +2,806 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width,
-             initial-scale=1.0,
-             maximum-scale=1.0,
-             minimum-scale=1.0,
-             user-scalable=no,
-             viewport-fit=cover"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>モンドウ</title>
-
 <style>
-
-/* ========================================
-   フォント
-======================================== */
-
-@font-face {
-    font-family: "Keifont";
-    src: url("./keifont.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
-
-
-/* ========================================
-   基本設定
-======================================== */
-
-* {
-    box-sizing: border-box;
-
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    touch-action: manipulation;
-
-    overscroll-behavior: none;
-
-    -webkit-text-size-adjust: 100%;
-}
-
-
-body {
-    font-family: "Keifont", sans-serif;
-
-    background: #87ceeb;
-
-    color: white;
-}
-
-
-/* ========================================
-   ゲーム全体
-======================================== */
-
-#game {
-
-    position: fixed;
-
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100dvh;
-
-    min-height: 500px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-
-    transition: background 0.4s;
-
-    touch-action: manipulation;
-}
-
-
-/* ========================================
-   敵エリア
-======================================== */
-
-#enemy-area {
-
-    width: 100%;
-
-    height: 50%;
-
-    min-height: 250px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    padding-top: 5vh;
-
-    flex-shrink: 0;
-}
-
-
-/* ========================================
-   HP
-======================================== */
-
-#hp-box {
-
-    width: min(80%, 500px);
-
-    text-align: center;
-}
-
-
-#hp-text {
-
-    font-size:
-        clamp(22px, 6vw, 36px);
-
-    text-shadow:
-        2px 2px 0
-        rgba(0,0,0,0.4);
-}
-
-
-#hp-background {
-
-    width: 100%;
-
-    height: 24px;
-
-    margin-top: 8px;
-
-    border:
-        3px solid white;
-
-    border-radius: 20px;
-
-    background:
-        rgba(0,0,0,0.35);
-
-    overflow: hidden;
-}
-
-
-#hp-bar {
-
-    width: 100%;
-
-    height: 100%;
-
-    background: #ef4444;
-
-    transition:
-        width 0.2s;
-}
-
-
-/* ========================================
-   敵
-======================================== */
-
-#enemy {
-
-    margin-top: 4vh;
-
-    width: min(45vw, 220px);
-
-    height: min(45vw, 220px);
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    font-size:
-        clamp(90px, 25vw, 160px);
-
-    filter:
-        drop-shadow(
-            0 12px 5px
-            rgba(0,0,0,0.25)
-        );
-
-    /*
-       transformではなく
-       scale系アニメーションだけにする
-       → レイアウトが動きにくい
-    */
-
-    will-change: transform;
-}
-
-
-/* ========================================
-   被弾
-======================================== */
-
-.enemy-hit {
-
-    animation:
-        enemyHit 0.14s ease-out;
-}
-
-
-@keyframes enemyHit {
-
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform:
-            scale(0.88);
-        filter:
-            brightness(1.8)
-            drop-shadow(
-                0 12px 5px
-                rgba(0,0,0,0.25)
-            );
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-
-/* ========================================
-   ダメージ表示
-======================================== */
-
-.damage {
-
-    position: fixed;
-
-    pointer-events: none;
-
-    z-index: 50;
-
-    font-size:
-        clamp(30px, 9vw, 60px);
-
-    font-weight: bold;
-
-    text-shadow:
-        3px 3px 0 black;
-
-    animation:
-        damageUp 0.8s
-        ease-out
-        forwards;
-}
-
-
-@keyframes damageUp {
-
-    0% {
-
-        opacity: 1;
-
-        transform:
-            translateY(0)
-            scale(0.8);
-    }
-
-    30% {
-
-        transform:
-            translateY(-25px)
-            scale(1.15);
-    }
-
-    100% {
-
-        opacity: 0;
-
-        transform:
-            translateY(-100px)
-            scale(1);
-    }
-}
-
-
-/* ========================================
-   戦闘エリア
-======================================== */
-
-#battle-area {
-
-    flex: 1;
-
-    min-height: 140px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    overflow: hidden;
-}
-
-
-/* ========================================
-   攻撃ボタン
-======================================== */
-
-#attack-button {
-
-    width:
-        min(38vw, 190px);
-
-    height:
-        min(38vw, 190px);
-
-    padding: 0;
-
-    border: none;
-
-    border-radius: 50%;
-
-    background: #f1f1f1;
-
-    font-family:
-        "Keifont",
-        sans-serif;
-
-    font-size:
-        clamp(65px, 18vw, 100px);
-
-    line-height: 1;
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    cursor: pointer;
-
-    /*
-       押していないとき
-    */
-
-    box-shadow:
-        0 10px 0 #999,
-        0 15px 25px
-        rgba(0,0,0,0.35);
-
-    /*
-       transformの影響を抑える
-    */
-
-    will-change: transform;
-
-    touch-action: manipulation;
-
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-
-/*
-   押している間
-
-   前より移動量を小さくすることで
-   「うにゃっ」を軽減
-*/
-
-#attack-button:active {
-
-    transform:
-        translateY(3px)
-        scale(0.98);
-
-    box-shadow:
-        0 6px 0 #999,
-        0 9px 15px
-        rgba(0,0,0,0.25);
-}
-
-
-/* ========================================
-   下部
-======================================== */
-
-#bottom-area {
-
-    width: 100%;
-
-    padding:
-
-        8px
-        10px
-        calc(
-            8px +
-            env(safe-area-inset-bottom)
-        )
-        10px;
-
-    flex-shrink: 0;
-}
-
-
-/* ========================================
-   ゴールド
-======================================== */
-
-#gold {
-
-    text-align: center;
-
-    font-size:
-        clamp(18px, 5vw, 28px);
-
-    margin-bottom: 8px;
-
-    text-shadow:
-        2px 2px 0
-        rgba(0,0,0,0.4);
-}
-
-
-/* ========================================
-   メニューボタン
-======================================== */
-
-#menu-buttons {
-
-    width: 100%;
-
-    display: flex;
-
-    gap: 8px;
-}
-
-
-.menu-button {
-
-    flex: 1;
-
-    min-height: 62px;
-
-    border: 0;
-
-    border-radius: 16px;
-
-    background:
-        rgba(0,0,0,0.45);
-
-    color: white;
-
-    font-family:
-        "Keifont",
-        sans-serif;
-
-    font-size:
-        clamp(17px, 5vw, 27px);
-
-    box-shadow:
-        0 5px 0
-        rgba(0,0,0,0.35);
-
-    cursor: pointer;
-
-    touch-action: manipulation;
-
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-
-/*
-   メニューの押し込みも小さく
-*/
-
-.menu-button:active {
-
-    transform:
-        translateY(2px);
-
-    box-shadow:
-        0 3px 0
-        rgba(0,0,0,0.35);
-}
-
-
-/* ========================================
-   モーダル
-======================================== */
-
-.modal {
-
-    position: fixed;
-
-    inset: 0;
-
-    display: none;
-
-    justify-content: center;
-    align-items: center;
-
-    padding: 20px;
-
-    background:
-        rgba(0,0,0,0.65);
-
-    z-index: 100;
-
-    touch-action: manipulation;
-}
-
-
-.modal.show {
-
-    display: flex;
-}
-
-
-.modal-box {
-
-    width:
-        min(90%, 450px);
-
-    max-height: 80vh;
-
-    overflow-y: auto;
-
-    padding: 25px;
-
-    border-radius: 22px;
-
-    background: white;
-
-    color: #222;
-
-    text-align: center;
-
-    box-shadow:
-        0 20px 50px
-        rgba(0,0,0,0.5);
-
-    touch-action: manipulation;
-}
-
-
-.modal-title {
-
-    font-size: 32px;
-
-    margin-bottom: 18px;
-}
-
-
-.modal-button {
-
-    width: 100%;
-
-    margin-top: 12px;
-
-    padding: 13px;
-
-    border: 0;
-
-    border-radius: 14px;
-
-    font-family:
-        "Keifont",
-        sans-serif;
-
-    font-size: 21px;
-
-    background: #eeeeee;
-
-    cursor: pointer;
-
-    touch-action: manipulation;
-
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-
-.modal-button:active {
-
-    transform:
-        scale(0.98);
-}
-
-
-/* ========================================
-   撃破画面
-======================================== */
-
-#defeat {
-
-    position: fixed;
-
-    inset: 0;
-
-    display: none;
-
-    flex-direction: column;
-
-    justify-content: center;
-    align-items: center;
-
-    background:
-        rgba(0,0,0,0.7);
-
-    z-index: 90;
-}
-
-
-#defeat.show {
-
-    display: flex;
-}
-
-
-#defeat-title {
-
-    font-size:
-        clamp(45px, 14vw, 80px);
-
-    text-shadow:
-        4px 4px 0 black;
-}
-
-
-#defeat-text {
-
-    font-size:
-        clamp(20px, 6vw, 32px);
-}
-
-
-/* ========================================
-   小さい画面
-======================================== */
-
-@media (max-height: 650px) {
-
-    #enemy-area {
-
-        height: 45%;
-
-        padding-top: 2vh;
-    }
-
-
-    #enemy {
-
-        margin-top: 1vh;
-    }
-
-
-    #attack-button {
-
-        width: 125px;
-
-        height: 125px;
-
-        font-size: 65px;
-    }
-
-
-    .menu-button {
-
-        min-height: 50px;
-    }
-}
+@font-face{font-family:"Keifont";src:url("./keifont.ttf") format("truetype")}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
+#game{position:fixed;inset:0;width:100%;height:100dvh;min-height:500px;display:flex;flex-direction:column;overflow:hidden;transition:background .4s}
+#enemy-area{width:100%;height:50%;min-height:250px;display:flex;flex-direction:column;align-items:center;padding-top:5vh;flex-shrink:0}
+#hp-box{width:min(80%,500px);text-align:center}
+#hp-text{font-size:clamp(22px,6vw,36px);text-shadow:2px 2px 0 rgba(0,0,0,.4)}
+#hp-background{width:100%;height:24px;margin-top:8px;border:3px solid white;border-radius:20px;background:rgba(0,0,0,.35);overflow:hidden}
+#hp-bar{width:100%;height:100%;background:#ef4444;transition:width .2s}
+#enemy{margin-top:4vh;width:min(45vw,220px);height:min(45vw,220px);display:flex;justify-content:center;align-items:center;font-size:clamp(90px,25vw,160px);filter:drop-shadow(0 12px 5px rgba(0,0,0,.25));will-change:transform}
+#enemy.boss{filter:drop-shadow(0 12px 5px rgba(255,190,0,.55))}
+.enemy-hit{animation:enemyHit .14s ease-out}
+@keyframes enemyHit{0%{transform:scale(1)}50%{transform:scale(.88);filter:brightness(1.8) drop-shadow(0 12px 5px rgba(0,0,0,.25))}100%{transform:scale(1)}}
+#enemy-name{font-size:clamp(20px,5vw,30px);font-weight:bold;text-shadow:2px 2px 0 rgba(0,0,0,.4);margin-top:5px}
+.damage{position:fixed;pointer-events:none;z-index:50;font-size:clamp(30px,9vw,60px);font-weight:bold;text-shadow:3px 3px 0 #000;animation:damageUp .8s ease-out forwards}
+@keyframes damageUp{0%{opacity:1;transform:translateY(0) scale(.8)}30%{transform:translateY(-25px) scale(1.15)}100%{opacity:0;transform:translateY(-100px) scale(1)}}
+#battle-area{flex:1;min-height:140px;display:flex;justify-content:center;align-items:center;overflow:hidden}
+#attack-button{width:min(38vw,190px);height:min(38vw,190px);padding:0;border:none;border-radius:50%;background:#f1f1f1;font-family:"Keifont",sans-serif;font-size:clamp(65px,18vw,100px);line-height:1;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 10px 0 #999,0 15px 25px rgba(0,0,0,.35);will-change:transform;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+#attack-button:active{transform:translateY(3px) scale(.98);box-shadow:0 6px 0 #999,0 9px 15px rgba(0,0,0,.25)}
+#attack-button:disabled{opacity:.5}
+#bottom-area{width:100%;padding:8px 10px calc(8px + env(safe-area-inset-bottom)) 10px;flex-shrink:0}
+#gold{text-align:center;font-size:clamp(18px,5vw,28px);margin-bottom:8px;text-shadow:2px 2px 0 rgba(0,0,0,.4)}
+#status{text-align:center;font-size:clamp(14px,4vw,20px);min-height:24px;text-shadow:1px 1px 0 rgba(0,0,0,.4)}
+#menu-buttons{width:100%;display:flex;gap:8px}
+.menu-button{flex:1;min-height:62px;border:0;border-radius:16px;background:rgba(0,0,0,.45);color:white;font-family:"Keifont",sans-serif;font-size:clamp(17px,5vw,27px);box-shadow:0 5px 0 rgba(0,0,0,.35);cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+.menu-button:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.modal{position:fixed;inset:0;display:none;justify-content:center;align-items:center;padding:20px;background:rgba(0,0,0,.65);z-index:100;touch-action:manipulation}
+.modal.show{display:flex}
+.modal-box{width:min(92%,500px);max-height:84vh;overflow-y:auto;padding:22px;border-radius:22px;background:white;color:#222;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5);touch-action:pan-y}
+.modal-title{font-size:32px;margin-bottom:18px}
+.modal-button{width:100%;margin-top:10px;padding:13px;border:0;border-radius:14px;font-family:"Keifont",sans-serif;font-size:20px;background:#eee;cursor:pointer;touch-action:manipulation}
+.modal-button:active{transform:scale(.98)}
+.equip-row{border:1px solid #ddd;border-radius:12px;padding:10px;margin:8px 0;text-align:left}
+.equip-row button{float:right;border:0;border-radius:9px;padding:8px;background:#ddd;font-family:inherit}
+.equipped{background:#e7f5ff;border-color:#5caee6}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#ddd;font-size:13px}
+#story-overlay{position:fixed;inset:0;display:none;justify-content:center;align-items:center;padding:20px;background:rgba(0,0,0,.82);z-index:200}
+#story-overlay.show{display:flex}
+#story-box{width:min(92%,600px);padding:24px;border-radius:22px;background:#fff;color:#222;text-align:center}
+#story-title{font-size:28px;margin-bottom:16px}
+#story-text{font-size:clamp(21px,6vw,30px);line-height:1.6;min-height:3.2em}
+#story-next{width:100%;margin-top:18px;padding:13px;border:0;border-radius:14px;background:#222;color:#fff;font-family:inherit;font-size:20px}
+#defeat{position:fixed;inset:0;display:none;flex-direction:column;justify-content:center;align-items:center;background:rgba(0,0,0,.75);z-index:150}
+#defeat.show{display:flex}
+#defeat-title{font-size:clamp(45px,14vw,80px);text-shadow:4px 4px 0 #000}
+#defeat-text{font-size:clamp(20px,6vw,32px);text-align:center;padding:0 20px}
+.small{font-size:14px;color:#666}
+@media(max-height:650px){#enemy-area{height:45%;padding-top:2vh}#enemy{margin-top:1vh}#attack-button{width:125px;height:125px;font-size:65px}.menu-button{min-height:50px}}
+
+/* ===== 追加機能 ===== */
+#player-hp-box{width:min(80%,500px);text-align:center;margin-top:10px}
+#player-hp-text{font-size:clamp(18px,5vw,28px);text-shadow:2px 2px 0 rgba(0,0,0,.4)}
+#player-hp-background{width:100%;height:16px;margin-top:5px;border:2px solid white;border-radius:20px;background:rgba(0,0,0,.35);overflow:hidden}
+#player-hp-bar{width:100%;height:100%;background:#22c55e;transition:width .2s}
+.boss-badge{font-size:clamp(20px,6vw,34px);margin-top:5px;text-shadow:2px 2px 0 #000}
+.status-line{font-size:clamp(15px,4vw,22px);margin-top:4px;text-shadow:1px 1px 0 #000}
+.small-text{font-size:16px;line-height:1.5}
+.equip-item{padding:10px;margin:8px 0;border-radius:12px;background:#eee;color:#222;text-align:left}
+.equip-item button{float:right;border:0;border-radius:8px;padding:6px 10px}
+.story-overlay{position:fixed;inset:0;display:none;justify-content:center;align-items:center;padding:20px;background:rgba(0,0,0,.78);z-index:200}
+.story-overlay.show{display:flex}
+.story-box{width:min(90%,500px);padding:28px;border-radius:22px;background:#fff;color:#222;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.story-text{font-size:clamp(22px,6vw,32px);min-height:170px;white-space:pre-line;line-height:1.6}
+.story-next{width:100%;padding:13px;border:0;border-radius:14px;font-family:"Keifont",sans-serif;font-size:21px}
 
 </style>
 </head>
-
-
 <body>
-
-
-<!-- ======================================
-     ゲーム本体
-======================================= -->
-
 <div id="game">
-
-
-    <!-- 敵 -->
-
-    <section id="enemy-area">
-
-        <div id="hp-box">
-
-            <div id="hp-text">
-                HP 6000 / 6000
-            </div>
-
-            <div id="hp-background">
-
-                <div id="hp-bar"></div>
-
-            </div>
-
-        </div>
-
-
-        <div id="enemy">
-            👾
-        </div>
-
-    </section>
-
-
-    <!-- 攻撃 -->
-
-    <section id="battle-area">
-
-        <button
-            id="attack-button"
-            type="button"
-            aria-label="攻撃">
-
-            ⚔️
-
-        </button>
-
-    </section>
-
-
-    <!-- 下部 -->
-
-    <section id="bottom-area">
-
-        <div id="gold">
-            💰 0 G
-        </div>
-
-
-        <div id="menu-buttons">
-
-            <button
-                class="menu-button"
-                id="upgrade-button"
-                type="button">
-
-                💪 強化
-
-            </button>
-
-
-            <button
-                class="menu-button"
-                id="bag-button"
-                type="button">
-
-                👜 バッグ
-
-            </button>
-
-
-            <button
-                class="menu-button"
-                id="shop-button"
-                type="button">
-
-                🛍️ ショップ
-
-            </button>
-
-        </div>
-
-    </section>
-
+<section id="enemy-area">
+<div id="hp-box">
+<div id="enemy-name">魔物 1</div>
+<div id="hp-text">HP 0 / 0</div>
+<div id="hp-background"><div id="hp-bar"></div></div>
+</div>
+<div id="enemy">👾</div>
+</section>
+<section id="battle-area"><button id="attack-button" type="button" aria-label="攻撃">⚔️</button></section>
+<section id="bottom-area">
+<div id="status"></div>
+<div id="gold">💰 0 G　🪙 0</div>
+<div id="menu-buttons">
+<button class="menu-button" id="upgrade-button">💪 強化</button>
+<button class="menu-button" id="bag-button">👜 装備</button>
+<button class="menu-button" id="shop-button">🛍️ ショップ</button>
+</div>
+</section>
 </div>
 
+<div class="modal" id="upgrade-modal"><div class="modal-box">
+<div class="modal-title">💪 強化</div>
+<div id="upgrade-info"></div>
+<button class="modal-button" id="hp-upgrade-buy">❤️ HPを強化</button>
+<button class="modal-button" id="attack-upgrade-buy">⚔️ 攻撃力を強化</button>
+<button class="modal-button" id="upgrade-close">閉じる</button>
+</div></div>
 
-<!-- ======================================
-     強化画面
-======================================= -->
-
-<div
-    class="modal"
-    id="upgrade-modal">
-
-    <div class="modal-box">
-
-        <div class="modal-title">
-            💪 強化
-        </div>
-
-
-        <div id="upgrade-info"></div>
+<div class="modal" id="bag-modal"><div class="modal-box">
+<div class="modal-title">🛡️ 装備</div>
+<div class="small">装備は最大3個。同じ装備は複数装備できません。</div>
+<div id="equip-list"></div>
+<button class="modal-button" id="bag-close">閉じる</button>
+</div></div>
 
 
-        <button
-            class="modal-button"
-            id="upgrade-buy"
-            type="button">
+<div class="modal" id="shop-modal"><div class="modal-box">
+<div class="modal-title">🛍️ ショップ</div>
+<div>🎰 装備ガチャ</div>
+<div class="small">1回 ＝ 🪙 ガチャコイン1枚<br>🧊 氷の鎧：5% / その他：均等</div>
+<button class="modal-button" id="gacha-roll">🎰 ガチャを回す！</button>
+<div id="gacha-result"></div>
+<button class="modal-button" id="shop-close">閉じる</button>
+</div></div>
 
-            攻撃力を強化
 
-        </button>
+<div id="story-overlay"><div id="story-box">
+<div id="story-title">ストーリー</div>
+<div id="story-text"></div>
+<button id="story-next">次へ</button>
+</div></div>
+
+<div id="defeat"><div id="defeat-title">💀 リベンジ！</div><div id="defeat-text">すべての進行・装備・ゴールド・コインを引き継ぎます。</div></div>
 
 
-        <button
-            class="modal-button"
-            id="upgrade-close"
-            type="button">
-
-            閉じる
-
-        </button>
-
-    </div>
-
+<div class="story-overlay" id="story-overlay">
+  <div class="story-box">
+    <div class="modal-title">📖 ストーリー</div>
+    <div class="story-text" id="story-text"></div>
+    <button class="story-next" id="story-next" type="button">次へ</button>
+  </div>
 </div>
-
-
-<!-- ======================================
-     バッグ
-======================================= -->
-
-<div
-    class="modal"
-    id="bag-modal">
-
-    <div class="modal-box">
-
-        <div class="modal-title">
-            👜 バッグ
-        </div>
-
-
-        <p>
-            現在アイテムはありません。
-        </p>
-
-
-        <button
-            class="modal-button"
-            id="bag-close"
-            type="button">
-
-            閉じる
-
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- ======================================
-     ショップ
-======================================= -->
-
-<div
-    class="modal"
-    id="shop-modal">
-
-    <div class="modal-box">
-
-        <div class="modal-title">
-            🛍️ ショップ
-        </div>
-
-
-        <p>
-            ショップは準備中！
-        </p>
-
-
-        <button
-            class="modal-button"
-            id="shop-close"
-            type="button">
-
-            閉じる
-
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- ======================================
-     撃破
-======================================= -->
-
-<div id="defeat">
-
-    <div id="defeat-title">
-        撃破！
-    </div>
-
-
-    <div id="defeat-text">
-        次のモンスターが現れた！
-    </div>
-
-</div>
-
 
 <script>
+"use strict";
 
-/* ========================================
-   セーブキー
-======================================== */
-
-const SAVE_KEY = "mondou_save";
-
-
-/* ========================================
-   ゲームデータ
-======================================== */
-
-const gameData = {
-
-    chapter: 1,
-
-    monsterNumber: 1,
-
-    monsterHP: 6000,
-
-    monsterMaxHP: 6000,
-
-    attackPower: 10,
-
-    gold: 0,
-
-    upgradeCost: 10
-
-};
-
-
-/* ========================================
-   モンスター
-======================================== */
-
-const monsters = [
-
-    "👾",
-    "🟢",
-    "👺",
-    "🐺",
-    "🐉"
-
+/* ================================
+   装備
+================================ */
+const EQUIPMENT=[
+{id:"iceArmor",name:"🧊 氷の鎧",effect:"凍結耐性(中) / 攻撃力×1.7",attack:1.7,resist:{freeze:25}},
+{id:"fireArmor",name:"🔥 炎熱の鎧",effect:"火傷耐性(中) / 攻撃力×1.7",attack:1.7,resist:{burn:25}},
+{id:"thunderCharm",name:"⚡ 雷鳴の護符",effect:"麻痺耐性(中) / 攻撃力×1.7",attack:1.7,resist:{paralyze:25}},
+{id:"poisonRing",name:"☠️ 毒消しの指輪",effect:"毒耐性(中) / 攻撃力×1.7",attack:1.7,resist:{poison:25}},
+{id:"darkGlasses",name:"🌑 闇夜の眼鏡",effect:"暗闇耐性(中) / 攻撃力×1.7",attack:1.7,resist:{dark:25}},
+{id:"curseNecklace",name:"💀 呪い返しの首飾り",effect:"呪い耐性(中) / 攻撃力×1.7",attack:1.7,resist:{curse:25}},
+{id:"holyBandage",name:"💔 聖なる包帯",effect:"回復阻害耐性(中) / 攻撃力×1.7",attack:1.7,resist:{healBlock:25}},
+{id:"lightShoes",name:"🌀 軽身の靴",effect:"鈍化耐性(中) / 攻撃力×1.7",attack:1.7,resist:{slow:25}},
+{id:"heater",name:"装備式ヒーター",effect:"氷耐性(大) / 攻撃力×1.1",attack:1.1,resist:{freeze:45}},
+{id:"guardianArmor",name:"🛡️ 守護の鎧",effect:"全妨害耐性(小) / 攻撃力×1.0",attack:1.0,allResist:10},
+{id:"jetShoes",name:"👟 ジェットシューズ",effect:"鈍化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{slow:45}},
+{id:"brainTrainer",name:"🧠 脳トレソフト",effect:"混乱耐性(大) / 攻撃力×1.1",attack:1.1,resist:{confuse:45}},
+{id:"okayU",name:"🍚 おかゆ",effect:"弱体化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{weaken:45}}
 ];
 
-
-/* ========================================
-   章背景
-======================================== */
-
-const chapterBackgrounds = {
-
-    1: `
-        linear-gradient(
-            to bottom,
-            #87ceeb 0%,
-            #bdefff 60%,
-            #72c95c 60%,
-            #4e9d3d 100%
-        )
-    `,
-
-    2: `
-        linear-gradient(
-            to bottom,
-            #263238 0%,
-            #455a64 60%,
-            #263238 60%,
-            #111 100%
-        )
-    `,
-
-    3: `
-        linear-gradient(
-            to bottom,
-            #4527a0 0%,
-            #7e57c2 55%,
-            #311b92 55%,
-            #12005e 100%
-        )
-    `
-
+/* ================================
+   ボス：50体ごと
+================================ */
+const BOSSES={
+50:{name:"ハツボ=ス",emoji:"👑",attackRate:2.2},
+100:{name:"ボマアス",emoji:"💣",attackRate:2.2},
+150:{name:"ハントザ",emoji:"🧊",attackRate:2.2,special:"攻撃時10%で氷状態(2秒)"},
+200:{name:"バト=ル",emoji:"💥",attackRate:2.2,special:"攻撃時1.5%で反射"}
 };
 
+/* ================================
+   ストーリー
+   5秒ごとに次の文へ
+================================ */
+const STORIES={
+1:{title:"初開始",lines:["やあ、君が勇者かい？","ああ、そうみたいだね","僕はそらまめ、魔物さ","おやおや、そうキレるなって","君と戦う気はないんだよ","昼飯を食べてくるから","また後で話そうか😏"]},
+50:{title:"50体目撃破",lines:["やあ、ハンバーグ弁当美味しかったよ","話を戻そう、僕は魔物だが戦うのは好きではない","なぜかって？それは秘密だ","モンスター退治を頑張ってるね","いつもモンスター退治ありがとうね","え？何故仲間を退治させるかって？","仲間じゃないからさ"]},
+100:{title:"100体目撃破",lines:["100体も倒したのか、なかなかやるね","え？仲間じゃないってどうゆうことだって？","まあまあ、それは秘密だって言わなかったかい😏","まあ君は知る必要のないことだけどね","次のボスを倒したら","大事な話をしよう","君の運命を変えるものかもしれないな😎"]},
+150:{title:"150体目撃破",lines:["やあ","大事な話をしよう","魔物って言うのは君たちの事に例えると","ゴキブリって生物だね","直接的な悪さは働かないが、卵を産んで、増え続けるんだ","悪さをしていないのになぜ人間は殺そうとするんだい？","まあ君はゴキブリ退治をしているような立場さ","魔物からすると殺し屋みたいなものだ","ん？僕はどんな生き物だって？","マダラシミだよ😏"]},
+200:{title:"200体目撃破",lines:["僕の最近のマイブームは","人間の家でかくれんぼするのがマイブームさ","スリルたっぷりで楽しいだろう？"]},
+250:{title:"250体目撃破",lines:["こんにちは","私はえだまめ","いつもそらまめがお世話になってるね","え？私は誰だって？","私はそらまめの友達よ","とゆうより、そらまめの同居人","そらまめと同じ家で過ごしてるわ","モンスター退治がんばってね"]},
+300:{title:"300体目撃破",lines:["やあ","そらまめだよ","そいえばここはどこだろうね","世界の端っこに触れたら死にかけたよ","どうしてこの世界には端っこがあるんだろうね"]},
+350:{title:"第2章：世界の端へ",lines:["僕そらまめだよ","世界の端っこの向こう側に","人影が見えたんだ","世界の裏側ってやつかな？","行ってみるかい？","おーけー、いこう"]},
+400:{title:"400体目撃破",lines:["モンスター退治は順調かい？","世界の端までまだまだだよ","この先にはシーカイ町がある","この先は海だから、ボートがないといけないね","確かシーカイ町にはボートがあるはず","シーカイ町へLET'S GO!!"]},
+450:{title:"450体目撃破",lines:["ここがシーカイ町さ","ボート持ってきたよ、これで行こう","ん？金もないのにどうやって？だって？","それは知らなくてもいい話だよ😈","まあ海を渡り、世界の端っこまで行こうか😎"]},
+475:{title:"475体目撃破",lines:["あと少しで世界の端っこさ","ここまで5時間の長い旅だったね","このまま進もうか","ん？なんだって？","お腹空いた？だって？","僕のハンバーグ弁当あげるよ","今度ハンバーグ弁当奢ってよね"]},
+500:{title:"第3章：ドメイン地方",lines:["ここが世界の端っこ","このバリアを破壊すれば進めるね","もう破壊するね","よし壊れた、先へ進もう"]},
+525:{title:"525体目撃破",lines:["ここはドメイン地方らしいね","どうやらこの世界は2つの世界に別れているらしい","さっき居たのが西地方、今いるのが東地方","コンビニに...あ、あ、","ハンバーグ弁当が..ないんだが","西世界限定販売ってやつか","代わりにWlバーガーを食べるとするか"]},
+550:{title:"550体目撃破",lines:["WLバーガーには熊肉が入っているのか、癖が強くて苦手だ","そんなことより、いやハンバーグ弁当の方が大事だが","魔物は、悪い奴だけではないんだ","前に他の魔物にハンバーグ弁当買ってもらったよ","とても美味しかった、特にマヨネーズがね","あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？","まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"]},
+600:{title:"600体目撃破",lines:["この先は凶悪な魔物の住処だ","人を殺して逮捕されたが脱獄したようなやつらだ","ぜひそんなクズどもは殺してくれ","人も襲うゴキブリなんて世界の終わりだろう？"]}
+};
 
-/* ========================================
-   DOM取得
-======================================== */
+const SAVE_KEY="mondou_save_v2";
+const gameData={
+chapter:1,monsterNumber:1,monsterHP:30,monsterMaxHP:30,
+attackPower:10,attackUpgradeCost:10,
+playerMaxHP:100,playerHP:100,hpUpgradeCost:10,
+gold:0,gachaCoins:0,equipped:[],owned:{},storySeen:{}
+};
 
-const game =
-    document.getElementById("game");
+let enemyTimer=null;
+let statusTimer=null;
+let currentEnemy=null;
+let storyTimer=null;
 
-const hpText =
-    document.getElementById("hp-text");
+const $=id=>document.getElementById(id);
 
-const hpBar =
-    document.getElementById("hp-bar");
-
-const enemy =
-    document.getElementById("enemy");
-
-const goldText =
-    document.getElementById("gold");
-
-const upgradeInfo =
-    document.getElementById("upgrade-info");
-
-const defeat =
-    document.getElementById("defeat");
-
-
-/* ========================================
-   セーブ
-======================================== */
-
-function saveGame() {
-
-    try {
-
-        localStorage.setItem(
-            SAVE_KEY,
-            JSON.stringify(gameData)
-        );
-
-    } catch (error) {
-
-        console.error(
-            "セーブに失敗しました:",
-            error
-        );
-
-    }
+function formatNumber(n){
+ if(!Number.isFinite(n))return"∞";
+ const units=["","万","億","兆","京","垓","秭","穣","溝","澗","正","載","極","恒河沙","阿僧祇","那由他","不可思議","無量大数"];
+ if(n<10000)return Math.floor(n).toLocaleString("ja-JP");
+ let x=n,i=0;
+ while(x>=10000&&i<units.length-1){x/=10000;i++}
+ return (x>=100?Math.floor(x):Math.floor(x*10)/10)+units[i];
 }
 
+/* 敵HPは強くインフレ、攻撃力は緩やかに増加 */
+function normalHP(n){return 30*Math.pow(1.17,n-1)}
+function normalAttack(n){return Math.floor(5+n*1.5)}
+function isBoss(n){return !!BOSSES[n]}
 
-/* ========================================
-   ロード
-======================================== */
-
-function loadGame() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                SAVE_KEY
-            );
-
-
-        if (!saved) {
-            return;
-        }
-
-
-        const data =
-            JSON.parse(saved);
-
-
-        if (
-            typeof data !== "object" ||
-            data === null
-        ) {
-            return;
-        }
-
-
-        Object.assign(
-            gameData,
-            data
-        );
-
-
-        /*
-           壊れたデータ対策
-        */
-
-        if (
-            typeof gameData.monsterNumber
-            !== "number" ||
-            gameData.monsterNumber < 1
-        ) {
-
-            gameData.monsterNumber = 1;
-        }
-
-
-        if (
-            typeof gameData.monsterMaxHP
-            !== "number" ||
-            gameData.monsterMaxHP <= 0
-        ) {
-
-            gameData.monsterMaxHP = 6000;
-        }
-
-
-        if (
-            typeof gameData.monsterHP
-            !== "number" ||
-            gameData.monsterHP < 0
-        ) {
-
-            gameData.monsterHP =
-                gameData.monsterMaxHP;
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "セーブデータの読み込みに失敗:",
-            error
-        );
-
-    }
+function attackMultiplier(){
+ return gameData.equipped.reduce((m,id)=>{
+  const e=EQUIPMENT.find(x=>x.id===id);
+  return m*(e?e.attack:1);
+ },1);
 }
 
-
-/* ========================================
-   UI更新
-======================================== */
-
-function updateUI() {
-
-    hpText.textContent =
-        `HP ${gameData.monsterHP} / ${gameData.monsterMaxHP}`;
-
-
-    const percentage =
-        Math.max(
-            0,
-            Math.min(
-                100,
-
-                gameData.monsterHP /
-                gameData.monsterMaxHP *
-                100
-            )
-        );
-
-
-    hpBar.style.width =
-        `${percentage}%`;
-
-
-    goldText.textContent =
-        `💰 ${gameData.gold} G`;
-
-
-    upgradeInfo.innerHTML =
-        `
-        攻撃力：
-        ${gameData.attackPower}
-        <br>
-        次の強化：
-        ${gameData.upgradeCost} G
-        `;
-
-
-    game.style.background =
-        chapterBackgrounds[
-            gameData.chapter
-        ] ||
-        chapterBackgrounds[1];
-
-
-    const index =
-        (
-            gameData.monsterNumber - 1
-        ) % monsters.length;
-
-
-    enemy.textContent =
-        monsters[index];
+function totalResistance(type){
+ let r=0;
+ for(const id of gameData.equipped){
+  const e=EQUIPMENT.find(x=>x.id===id);
+  if(!e)continue;
+  r+=e.allResist||0;
+  r+=e.resist?.[type]||0;
+ }
+ return Math.min(100,r);
 }
 
-
-/* ========================================
-   攻撃
-======================================== */
-
-document
-    .getElementById("attack-button")
-    .addEventListener(
-        "click",
-        attack
-    );
-
-
-function attack() {
-
-    if (
-        gameData.monsterHP <= 0
-    ) {
-
-        return;
-    }
-
-
-    const damage =
-        gameData.attackPower;
-
-
-    gameData.monsterHP =
-        Math.max(
-            0,
-
-            gameData.monsterHP -
-            damage
-        );
-
-
-    /* 敵の被弾 */
-
-    enemy.classList.remove(
-        "enemy-hit"
-    );
-
-
-    void enemy.offsetWidth;
-
-
-    enemy.classList.add(
-        "enemy-hit"
-    );
-
-
-    /* ダメージ表示 */
-
-    showDamage(damage);
-
-
-    /* 更新 */
-
-    updateUI();
-
-
-    /* 自動保存 */
-
-    saveGame();
-
-
-    /* 撃破判定 */
-
-    if (
-        gameData.monsterHP <= 0
-    ) {
-
-        defeatMonster();
-    }
+function chapterFor(n){
+ if(n<=350)return 1;
+ if(n<=500)return 2;
+ return 3;
 }
 
-
-/* ========================================
-   ダメージ表示
-======================================== */
-
-function showDamage(damage) {
-
-    const element =
-        document.createElement(
-            "div"
-        );
-
-
-    element.className =
-        "damage";
-
-
-    element.textContent =
-        `-${damage}`;
-
-
-    const rect =
-        enemy.getBoundingClientRect();
-
-
-    element.style.left =
-        (
-            rect.left +
-            rect.width / 2 -
-            30 +
-            Math.random() * 60
-        ) + "px";
-
-
-    element.style.top =
-        (
-            rect.top +
-            rect.height / 2
-        ) + "px";
-
-
-    document.body.appendChild(
-        element
-    );
-
-
-    setTimeout(
-        () => {
-
-            element.remove();
-
-        },
-        800
-    );
+function makeEnemy(){
+ const n=gameData.monsterNumber;
+ const boss=BOSSES[n];
+ const max=normalHP(n)*(boss?5:1);
+ currentEnemy={
+  number:n,boss:!!boss,
+  name:boss?boss.name:`魔物 ${n}`,
+  emoji:boss?boss.emoji:["👾","🟢","👺","🐺","🐉"][((n-1)%5)],
+  maxHP:max,hp:Math.min(gameData.monsterHP,max),
+  attack:boss?Math.floor(normalAttack(n)*boss.attackRate):normalAttack(n)
+ };
+ if(currentEnemy.hp<=0)currentEnemy.hp=max;
+ updateUI();
 }
 
-
-/* ========================================
-   モンスター撃破
-======================================== */
-
-function defeatMonster() {
-
-    gameData.gold += 10;
-
-
-    saveGame();
-
-
-    defeat.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        () => {
-
-            defeat.classList.remove(
-                "show"
-            );
-
-
-            nextMonster();
-
-        },
-
-        900
-    );
+function saveGame(){
+ try{
+  localStorage.setItem(SAVE_KEY,JSON.stringify(gameData));
+ }catch(e){console.error(e)}
 }
 
-
-/* ========================================
-   次のモンスター
-======================================== */
-
-function nextMonster() {
-
-    gameData.monsterNumber++;
-
-
-    gameData.monsterMaxHP =
-        Math.floor(
-            6000 *
-            Math.pow(
-                1.15,
-
-                gameData.monsterNumber -
-                1
-            )
-        );
-
-
-    gameData.monsterHP =
-        gameData.monsterMaxHP;
-
-
-    updateUI();
-
-
-    saveGame();
+function loadGame(){
+ try{
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw)return;
+  const saved=JSON.parse(raw);
+  if(!saved||typeof saved!=="object")return;
+  Object.assign(gameData,saved);
+  if(!Array.isArray(gameData.equipped))gameData.equipped=[];
+  if(!gameData.owned||typeof gameData.owned!=="object")gameData.owned={};
+  if(!gameData.storySeen||typeof gameData.storySeen!=="object")gameData.storySeen={};
+ }catch(e){console.error(e)}
 }
 
-
-/* ========================================
-   強化
-======================================== */
-
-document
-    .getElementById("upgrade-buy")
-    .addEventListener(
-        "click",
-        upgrade
-    );
-
-
-function upgrade() {
-
-    if (
-        gameData.gold <
-        gameData.upgradeCost
-    ) {
-
-        alert(
-            "ゴールドが足りない！"
-        );
-
-        return;
-    }
-
-
-    gameData.gold -=
-        gameData.upgradeCost;
-
-
-    gameData.attackPower += 5;
-
-
-    gameData.upgradeCost =
-        Math.floor(
-            gameData.upgradeCost *
-            1.5
-        );
-
-
-    updateUI();
-
-
-    saveGame();
+function updateUI(){
+ const e=currentEnemy;
+ if(!e)return;
+ $("enemy-name").textContent=e.boss?`👑 ${e.name}`:e.name;
+ $("hp-text").textContent=`HP ${formatNumber(e.hp)} / ${formatNumber(e.maxHP)}`;
+ $("hp-bar").style.width=`${Math.max(0,Math.min(100,e.hp/e.maxHP*100))}%`;
+ $("enemy").textContent=e.emoji;
+ $("enemy").classList.toggle("boss",e.boss);
+ $("gold").textContent=`💰 ${formatNumber(gameData.gold)} G　🪙 ${gameData.gachaCoins}`;
+ $("status").textContent=statusText();
+ $("upgrade-info").innerHTML=`❤️ HP：${formatNumber(gameData.playerMaxHP)}　⚔️攻撃：${formatNumber(gameData.attackPower*attackMultiplier())}<br>HP強化：${formatNumber(gameData.hpUpgradeCost)} G / 攻撃強化：${formatNumber(gameData.attackUpgradeCost)} G`;
+ renderEquipment();
+ $("game").style.background=chapterBackgrounds[chapterFor(gameData.monsterNumber)];
 }
 
+const chapterBackgrounds={
+1:"linear-gradient(to bottom,#87ceeb 0%,#bdefff 60%,#72c95c 60%,#4e9d3d 100%)",
+2:"linear-gradient(to bottom,#263238 0%,#455a64 60%,#263238 60%,#111 100%)",
+3:"linear-gradient(to bottom,#4527a0 0%,#7e57c2 55%,#311b92 55%,#12005e 100%)"
+};
 
-/* ========================================
-   モーダル
-======================================== */
+function statusText(){
+ if(statusTimer)return currentStatus;
+ return currentEnemy?.boss?`👑 ボス ⚔️攻撃力 ${formatNumber(currentEnemy.attack)}（3秒ごと）`:"👾 通常敵：攻撃してこない";
+}
+let currentStatus="";
 
-function openModal(id) {
-
-    document
-        .getElementById(id)
-        .classList.add(
-            "show"
-        );
+function showDamage(dmg){
+ const el=document.createElement("div");
+ el.className="damage";el.textContent=`-${formatNumber(dmg)}`;
+ const r=$("enemy").getBoundingClientRect();
+ el.style.left=(r.left+r.width/2-30+Math.random()*60)+"px";
+ el.style.top=(r.top+r.height/2)+"px";
+ document.body.appendChild(el);
+ setTimeout(()=>el.remove(),800);
 }
 
-
-function closeModals() {
-
-    document
-        .querySelectorAll(
-            ".modal"
-        )
-        .forEach(
-            modal => {
-
-                modal.classList.remove(
-                    "show"
-                );
-
-            }
-        );
+function playerAttack(){
+ if(!currentEnemy||currentEnemy.hp<=0)return;
+ const damage=gameData.attackPower*attackMultiplier();
+ currentEnemy.hp=Math.max(0,currentEnemy.hp-damage);
+ gameData.monsterHP=currentEnemy.hp;
+ $("enemy").classList.remove("enemy-hit");void $("enemy").offsetWidth;$("enemy").classList.add("enemy-hit");
+ showDamage(damage);
+ if(currentEnemy.hp<=0)defeatMonster();
+ else{
+  saveGame();
+  if(currentEnemy.boss)startBossTimer();
+  updateUI();
+ }
 }
 
+function startBossTimer(){
+ if(enemyTimer)return;
+ enemyTimer=setTimeout(()=>{
+  enemyTimer=null;
+  bossAttack();
+ },3000);
+}
 
-/* ========================================
-   強化ボタン
-======================================== */
+function bossAttack(){
+ if(!currentEnemy||currentEnemy.hp<=0)return;
+ const dmg=currentEnemy.attack;
+ gameData.playerHP=Math.max(0,gameData.playerHP-dmg);
+ if(currentEnemy.number===150&&Math.random()<.10){
+  const resistance=totalResistance("freeze");
+  const ms=2000*(1-resistance/100);
+  if(ms>0){
+   statusTimer=setTimeout(()=>{statusTimer=null;currentStatus="";updateUI()},ms);
+   currentStatus=`🧊 氷状態！ ${Math.round(ms/1000*10)/10}秒 攻撃不能`;
+  }
+ }
+ if(currentEnemy.number===200&&Math.random()<.015){
+  const reflected=dmg*.05;
+  currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
+  showDamage(reflected);
+ }
+ if(gameData.playerHP<=0){
+  saveGame();
+  showDefeatAndRevenge();
+  return;
+ }
+ saveGame();updateUI();startBossTimer();
+}
 
-document
-    .getElementById("upgrade-button")
-    .addEventListener(
-        "click",
-        () => {
+function defeatMonster(){
+ if(enemyTimer){clearTimeout(enemyTimer);enemyTimer=null}
+ gameData.gold+=3;
+ gameData.gold+=5; /* 1体ごとに+5：後半へ向けた報酬インフレ */
+ if(currentEnemy.boss)gameData.gachaCoins+=1;
+ gameData.playerHP=gameData.playerMaxHP;
+ gameData.monsterNumber++;
+ gameData.chapter=chapterFor(gameData.monsterNumber);
+ gameData.monsterMaxHP=normalHP(gameData.monsterNumber);
+ gameData.monsterHP=gameData.monsterMaxHP;
+ saveGame();
+ const defeatedNumber = gameData.monsterNumber - 1;
+ const story=STORIES[defeatedNumber];
+ if(story&&!gameData.storySeen[defeatedNumber]){
+  gameData.storySeen[defeatedNumber]=true;
+  showStory(story,()=>{makeEnemy();saveGame()});
+ }else makeEnemy();
+}
 
-            openModal(
-                "upgrade-modal"
-            );
+function showDefeatAndRevenge(){
+ $("defeat").classList.add("show");
+ setTimeout(()=>{
+  $("defeat").classList.remove("show");
+  gameData.playerHP=gameData.playerMaxHP;
+  gameData.monsterHP=currentEnemy.maxHP;
+  currentEnemy.hp=currentEnemy.maxHP;
+  saveGame();
+  updateUI();
+ },1200);
+}
 
-        }
-    );
+/* ================================
+   ストーリー：自動5秒
+================================ */
+function showStory(story,done){
+ $("story-overlay").classList.add("show");
+ $("story-title").textContent=story.title;
+ let i=0;
+ $("story-text").textContent=story.lines[i];
+ const next=()=>{
+  clearTimeout(storyTimer);
+  i++;
+  if(i>=story.lines.length){
+   $("story-overlay").classList.remove("show");
+   $("story-next").onclick=null;
+   if(done)done();
+   return;
+  }
+  $("story-text").textContent=story.lines[i];
+  storyTimer=setTimeout(next,5000);
+ };
+ $("story-next").onclick=next;
+ storyTimer=setTimeout(next,5000);
+}
 
+function renderEquipment(){
+ $("equip-list").innerHTML=EQUIPMENT.map(e=>{
+  const owned=gameData.owned[e.id]||0;
+  const equipped=gameData.equipped.includes(e.id);
+  return `<div class="equip-row ${equipped?"equipped":""}">
+  <b>${e.name}</b> ${equipped?'<span class="badge">装備中</span>':""}<br>
+  <span class="small">${e.effect}<br>所持：${owned}</span><br>
+  ${owned?`<button onclick="toggleEquipment('${e.id}')">${equipped?"外す":"装備する"}</button>`:""}
+  <div style="clear:both"></div></div>`;
+ }).join("");
+}
 
-document
-    .getElementById("upgrade-close")
-    .addEventListener(
-        "click",
-        closeModals
-    );
+window.toggleEquipment=function(id){
+ const i=gameData.equipped.indexOf(id);
+ if(i>=0)gameData.equipped.splice(i,1);
+ else{
+  if(gameData.equipped.length>=3){alert("装備できるのは3個まで！");return}
+  if((gameData.owned[id]||0)<=0)return;
+  gameData.equipped.push(id);
+ }
+ saveGame();updateUI();
+};
 
+function rollGacha(){
+ if(gameData.gachaCoins<1){alert("ガチャコインが足りない！");return}
+ gameData.gachaCoins--;
+ const r=Math.random();
+ let id;
+ if(r<.05)id="iceArmor";
+ else{
+  const rest=EQUIPMENT.filter(e=>e.id!=="iceArmor");
+  id=rest[Math.floor(Math.random()*rest.length)].id;
+ }
+ const e=EQUIPMENT.find(x=>x.id===id);
+ if(gameData.owned[id]){
+  gameData.gachaCoins++;
+  $("gacha-result").innerHTML=`<p>🎯 ${e.name}<br>ダブり！ → 🪙 1枚に変換</p>`;
+ }else{
+  gameData.owned[id]=1;
+  $("gacha-result").innerHTML=`<p>🎉 ${e.name} GET！<br>${e.effect}</p>`;
+ }
+ saveGame();updateUI();
+}
 
-/* ========================================
-   バッグ
-======================================== */
+function openModal(id){$(id).classList.add("show")}
+function closeModals(){document.querySelectorAll(".modal").forEach(x=>x.classList.remove("show"))}
 
-document
-    .getElementById("bag-button")
-    .addEventListener(
-        "click",
-        () => {
+$("attack-button").onclick=playerAttack;
+$("upgrade-button").onclick=()=>{updateUI();openModal("upgrade-modal")};
+$("bag-button").onclick=()=>{updateUI();openModal("bag-modal")};
+$("shop-button").onclick=()=>openModal("shop-modal");
+$("upgrade-close").onclick=closeModals;
+$("bag-close").onclick=closeModals;
+$("shop-close").onclick=closeModals;
+$("gacha-roll").onclick=rollGacha;
 
-            openModal(
-                "bag-modal"
-            );
+$("hp-upgrade-buy").onclick=()=>{
+ if(gameData.gold<gameData.hpUpgradeCost){alert("ゴールドが足りない！");return}
+ gameData.gold-=gameData.hpUpgradeCost;
+ gameData.playerMaxHP+=20;
+ gameData.playerHP=gameData.playerMaxHP;
+ gameData.hpUpgradeCost=Math.floor(gameData.hpUpgradeCost*1.5);
+ saveGame();updateUI();
+};
 
-        }
-    );
+$("attack-upgrade-buy").onclick=()=>{
+ if(gameData.gold<gameData.attackUpgradeCost){alert("ゴールドが足りない！");return}
+ gameData.gold-=gameData.attackUpgradeCost;
+ gameData.attackPower+=5;
+ gameData.attackUpgradeCost=Math.floor(gameData.attackUpgradeCost*1.5);
+ saveGame();updateUI();
+};
 
-
-document
-    .getElementById("bag-close")
-    .addEventListener(
-        "click",
-        closeModals
-    );
-
-
-/* ========================================
-   ショップ
-======================================== */
-
-document
-    .getElementById("shop-button")
-    .addEventListener(
-        "click",
-        () => {
-
-            openModal(
-                "shop-modal"
-            );
-
-        }
-    );
-
-
-document
-    .getElementById("shop-close")
-    .addEventListener(
-        "click",
-        closeModals
-    );
-
-
-/* ========================================
-   起動
-======================================== */
-
+/* 初期化 */
 loadGame();
+gameData.chapter=chapterFor(gameData.monsterNumber);
+makeEnemy();
 
-updateUI();
+/* 初回ストーリー */
+if(gameData.monsterNumber===1&&!gameData.storySeen[1]){
+ gameData.storySeen[1]=true;
+ showStory(STORIES[1],()=>{saveGame();updateUI()});
+}
+
+/* ========================================
+   追加ゲームシステム
+======================================== */
+
+const EXTRA_SAVE_KEY = "mondou_extra_save";
+
+const extraData = {
+    playerHP: 100,
+    playerMaxHP: 100,
+    gachaCoins: 0,
+    equipment: [],
+    status: {},
+    storySeen: {},
+    revenge: false
+};
+
+const equipmentList = [
+    {name:"🧊 氷の鎧", effect:"凍結耐性・中 / 攻撃力×1.7", status:"freeze", rate:5},
+    {name:"🔥 炎熱の鎧", effect:"火傷耐性・中 / 攻撃力×1.7", status:"burn", rate:5},
+    {name:"⚡ 雷鳴の護符", effect:"麻痺耐性・中 / 攻撃力×1.7", status:"paralysis", rate:5},
+    {name:"☠️ 毒消しの指輪", effect:"毒耐性・中 / 攻撃力×1.7", status:"poison", rate:5},
+    {name:"🌑 闇夜の眼鏡", effect:"暗闇耐性・中 / 攻撃力×1.7", status:"dark", rate:5},
+    {name:"💀 呪い返しの首飾り", effect:"呪い耐性・中 / 攻撃力×1.7", status:"curse", rate:5},
+    {name:"💔 聖なる包帯", effect:"回復阻害耐性・中 / 攻撃力×1.7", status:"healblock", rate:5},
+    {name:"🌀 軽身の靴", effect:"鈍化耐性・中 / 攻撃力×1.7", status:"slow", rate:5},
+    {name:"🌡️ 装備式ヒーター", effect:"氷耐性・大 / 攻撃力×1.1", status:"freeze", rate:5},
+    {name:"🛡️ 守護の鎧", effect:"全妨害耐性・小 / 攻撃力×1.0", status:"all", rate:5},
+    {name:"👟 ジェットシューズ", effect:"鈍化耐性・大 / 攻撃力×1.1", status:"slow", rate:5},
+    {name:"🧠 脳トレソフト", effect:"混乱耐性・大 / 攻撃力×1.1", status:"confuse", rate:5},
+    {name:"🍚 おかゆ", effect:"弱体化耐性・大 / 攻撃力×1.1", status:"weaken", rate:5}
+];
+
+const bossNames = {
+    50:"ハツボ=ス",
+    100:"ボマアス",
+    150:"ハントザ",
+    200:"バト=ル"
+};
+
+const bossAbilities = {
+    150:{type:"freeze", text:"⚠️ 攻撃時10%で氷状態(2秒)"},
+    200:{type:"reflect", text:"⚠️ 1.5%で反射"}
+};
+
+const stories = {
+    0:[
+        "やあ、君が勇者かい？",
+        "ああ、そうみたいだね",
+        "僕はそらまめ、魔物さ",
+        "おやおや、そうキレるなって",
+        "君と戦う気はないんだよ",
+        "昼飯を食べてくるから\nまた後で話そうか😏"
+    ],
+    50:[
+        "やあ、ハンバーグ弁当美味しかったよ",
+        "話を戻そう、僕は魔物だが戦うのは好きではない",
+        "なぜかって？それは秘密だ",
+        "モンスター退治を頑張ってるね",
+        "いつもモンスター退治ありがとうね",
+        "え？何故仲間を退治させるかって？",
+        "仲間じゃないからさ"
+    ],
+    100:[
+        "100体も倒したのか、なかなかやるね",
+        "え？仲間じゃないってどうゆうことだって？",
+        "まあまあ、それは秘密だって言わなかったかい😏",
+        "まあ君は知る必要のないことだけどね",
+        "次のボスを倒したら\n大事な話をしよう",
+        "君の運命を変えるものかもしれないな😎"
+    ],
+    150:[
+        "やあ",
+        "大事な話をしよう",
+        "魔物って言うのは君たちの事に例えると",
+        "ゴキブリって生物だね",
+        "直接的な悪さは働かないが、卵を産んで、増え続けるんだ",
+        "悪さをしていないのになぜ人間は殺そうとするんだい？",
+        "まあ君はゴキブリ退治をしているような立場さ",
+        "魔物からすると殺し屋みたいなものだ",
+        "ん？僕はどんな生き物だって？",
+        "マダラシミだよ😏"
+    ],
+    200:[
+        "僕の最近のマイブームは",
+        "人間の家でかくれんぼするのがマイブームさ",
+        "スリルたっぷりで楽しいだろう？"
+    ],
+    250:[
+        "こんにちは",
+        "私はえだまめ",
+        "いつもそらまめがお世話になってるね",
+        "え？私は誰だって？",
+        "私はそらまめの友達よ",
+        "とゆうより、そらまめの同居人",
+        "そらまめと同じ家で過ごしてるわ",
+        "モンスター退治がんばってね"
+    ],
+    300:[
+        "やあ",
+        "そらまめだよ",
+        "そいえばここはどこだろうね",
+        "世界の端っこに触れたら死にかけたよ",
+        "どうしてこの世界には端っこがあるんだろうね"
+    ],
+    350:[
+        "僕そらまめだよ",
+        "世界の端っこの向こう側に",
+        "人影が見えたんだ",
+        "世界の裏側ってやつかな？",
+        "行ってみるかい？",
+        "おーけー、いこう"
+    ],
+    400:[
+        "モンスター退治は順調かい？",
+        "世界の端までまだまだだよ",
+        "この先にはシーカイ町がある",
+        "この先は海だから、ボートがないといけないね",
+        "確かシーカイ町にはボートがあるはず",
+        "シーカイ町へLET'S GO!!"
+    ],
+    450:[
+        "ここがシーカイ町さ",
+        "ボート持ってきたよ、これで行こう",
+        "ん？金もないのにどうやって？だって？",
+        "それは知らなくてもいい話だよ😈",
+        "まあ海を渡り、世界の端っこまで行こうか😎"
+    ],
+    475:[
+        "あと少しで世界の端っこさ",
+        "ここまで5時間の長い旅だったね",
+        "このまま進もうか",
+        "ん？なんだって？",
+        "お腹空いた？だって？",
+        "僕のハンバーグ弁当あげるよ",
+        "今度ハンバーグ弁当奢ってよね"
+    ],
+    500:[
+        "ここが世界の端っこ",
+        "このバリアを破壊すれば進めるね",
+        "もう破壊するね",
+        "よし壊れた、先へ進もう"
+    ],
+    525:[
+        "ここはドメイン地方らしいね",
+        "どうやらこの世界は2つの世界に別れているらしい",
+        "さっき居たのが西地方、今いるのが東地方",
+        "コンビニに...あ、あ、",
+        "ハンバーグ弁当が..ないんだが",
+        "西世界限定販売ってやつか",
+        "代わりにWlバーガーを食べるとするか"
+    ],
+    550:[
+        "WLバーガーには熊肉が入っているのか、癖が強くて苦手だ",
+        "そんなことより、いやハンバーグ弁当の方が大事だが",
+        "魔物は、悪い奴だけではないんだ",
+        "前に他の魔物にハンバーグ弁当買ってもらったよ",
+        "とても美味しかった、特にマヨネーズがね",
+        "あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？",
+        "まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"
+    ],
+    600:[
+        "この先は凶悪な魔物の住処だ",
+        "人を殺して逮捕されたが脱獄したようなやつらだ",
+        "ぜひそんなクズどもは殺してくれ",
+        "人も襲うゴキブリなんて世界の終わりだろう？"
+    ]
+};
+
+function loadExtra(){
+    try{
+        const saved=localStorage.getItem(EXTRA_SAVE_KEY);
+        if(saved) Object.assign(extraData, JSON.parse(saved));
+    }catch(e){ console.error(e); }
+}
+function saveExtra(){
+    try{ localStorage.setItem(EXTRA_SAVE_KEY,JSON.stringify(extraData)); }catch(e){}
+}
+function isBoss(n){ return n%50===0; }
+
+function getAttackMultiplier(){
+    return extraData.equipment.reduce((m,e)=>{
+        const item=equipmentList.find(x=>x.name===e);
+        return m*(item?.rate===5 && ["🧊","🔥","⚡","☠️","🌑","💀","💔","🌀"].some(x=>item.name.startsWith(x)) ? 1.7 : item?.name==="🛡️ 守護の鎧" ? 1 : 1.1);
+    },1);
+}
+
+function updateExtraUI(){
+    const hp=Math.max(0,Math.min(extraData.playerHP,extraData.playerMaxHP));
+    $("player-hp-text").textContent=`❤️ HP ${hp} / ${extraData.playerMaxHP}`;
+    $("player-hp-bar").style.width=(hp/extraData.playerMaxHP*100)+"%";
+    $("gacha-info").textContent=`🪙 ガチャコイン：${extraData.gachaCoins}枚`;
+    $("boss-badge").textContent=isBoss(gameData.monsterNumber)?`👑 BOSS：${bossNames[gameData.monsterNumber]||"ボス"}`:"";
+    $("status-line").textContent=bossAbilities[gameData.monsterNumber]?.text||"";
+    $("bag-content").innerHTML=extraData.equipment.length
+        ? extraData.equipment.map((n,i)=>{
+            const x=equipmentList.find(e=>e.name===n);
+            return `<div class="equip-item"><b>${n}</b><br>${x?.effect||""}</div>`;
+        }).join("")
+        : "現在装備はありません。";
+}
+
+function $(id){ return document.getElementById(id); }
+
+function showStory(lines,done){
+    const overlay=$("story-overlay"), text=$("story-text");
+    let i=0;
+    overlay.classList.add("show");
+    text.textContent=lines[0];
+    let timer=setInterval(()=>{
+        i++;
+        if(i>=lines.length){ clearInterval(timer); return; }
+        text.textContent=lines[i];
+    },5000);
+    $("story-next").onclick=()=>{
+        clearInterval(timer);
+        overlay.classList.remove("show");
+        if(done) done();
+    };
+}
+
+function rollGacha(){
+    if(extraData.gachaCoins<1) return alert("ガチャコインが足りない！");
+    extraData.gachaCoins--;
+    let item;
+    if(Math.random()<0.05) item=equipmentList[0];
+    else item=equipmentList[1+Math.floor(Math.random()*(equipmentList.length-1))];
+    const owned=extraData.equipment.includes(item.name);
+    if(owned){
+        extraData.gachaCoins++;
+        $("gacha-result").textContent=`🎯 ${item.name} はダブり！ → 🪙 コイン1枚`;
+    }else{
+        extraData.equipment.push(item.name);
+        $("gacha-result").textContent=`🎉 ${item.name} GET！`;
+    }
+    updateExtraUI(); saveExtra();
+}
+
+$("gacha-button").addEventListener("click",rollGacha);
+
+function damagePlayer(){
+    if(!isBoss(gameData.monsterNumber)) return;
+    const bossAttack=Math.max(5,Math.floor(20+gameData.monsterNumber*0.35));
+    extraData.playerHP=Math.max(0,extraData.playerHP-bossAttack);
+    updateExtraUI(); saveExtra();
+    if(extraData.playerHP<=0){
+        $("defeat-title").textContent="💀 全滅！";
+        $("defeat-text").textContent="すべてを引き継いでリベンジできる！";
+        $("revenge-button").style.display="block";
+        $("defeat").classList.add("show");
+    }
+}
+
+setInterval(damagePlayer,3000);
+
+$("revenge-button").addEventListener("click",()=>{
+    extraData.playerHP=extraData.playerMaxHP;
+    extraData.revenge=true;
+    saveExtra();
+    $("defeat").classList.remove("show");
+    updateExtraUI();
+});
+
+const originalAttack = attack;
+attack = function(){
+    if(extraData.playerHP<=0) return;
+    originalAttack();
+};
+
+const originalDefeatMonster = defeatMonster;
+defeatMonster = function(){
+    const defeated=gameData.monsterNumber;
+    if(isBoss(defeated)){
+        extraData.gachaCoins++;
+        extraData.playerHP=extraData.playerMaxHP;
+        saveExtra();
+    }
+    originalDefeatMonster();
+    const lines=stories[defeated];
+    if(lines && !extraData.storySeen[defeated]){
+        extraData.storySeen[defeated]=true;
+        saveExtra();
+        setTimeout(()=>{
+            defeat.classList.remove("show");
+            showStory(lines,()=>{});
+        },950);
+    }
+};
+
+loadExtra();
+updateExtraUI();
+
+if(!localStorage.getItem(EXTRA_SAVE_KEY) && stories[0]){
+    setTimeout(()=>{
+        showStory(stories[0],()=>{});
+        extraData.storySeen[0]=true;
+        saveExtra();
+    },300);
+}
 
 </script>
-
 </body>
 </html>
