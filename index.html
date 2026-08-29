@@ -78,8 +78,14 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 <section id="enemy-area">
 <div id="hp-box">
 <div id="enemy-name">魔物 1</div>
-<div id="hp-text">HP 0 / 0</div>
+<div id="hp-text">HP 30 / 30</div>
 <div id="hp-background"><div id="hp-bar"></div></div>
+<div id="player-hp-box">
+  <div id="player-hp-text">❤️ HP 100 / 100</div>
+  <div id="player-hp-background"><div id="player-hp-bar"></div></div>
+</div>
+<div id="boss-badge" class="boss-badge"></div>
+<div id="status-line" class="status-line"></div>
 </div>
 <div id="enemy">👾</div>
 </section>
@@ -87,6 +93,7 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 <section id="bottom-area">
 <div id="status"></div>
 <div id="gold">💰 0 G　🪙 0</div>
+<div style="text-align:center;font-size:14px;opacity:.9;margin-bottom:6px">🛍️ ショップではガチャを回せます</div>
 <div id="menu-buttons">
 <button class="menu-button" id="upgrade-button">💪 強化</button>
 <button class="menu-button" id="bag-button">👜 装備</button>
@@ -114,12 +121,11 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 <div class="modal" id="shop-modal"><div class="modal-box">
 <div class="modal-title">🛍️ ショップ</div>
 <div>🎰 装備ガチャ</div>
-<div class="small">1回 ＝ 🪙 ガチャコイン1枚<br>🧊 氷の鎧：5% / その他：均等</div>
+<div class="small">1回 = 🪙 ガチャコイン1枚<br>🧊 氷の鎧：5% / その他：残り95%を均等<br>🎁 ガチャコイン：ボス撃破・イベント・ミッション</div>
 <button class="modal-button" id="gacha-roll">🎰 ガチャを回す！</button>
 <div id="gacha-result"></div>
 <button class="modal-button" id="shop-close">閉じる</button>
 </div></div>
-
 
 <div id="story-overlay"><div id="story-box">
 <div id="story-title">ストーリー</div>
@@ -127,681 +133,687 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 <button id="story-next">次へ</button>
 </div></div>
 
-<div id="defeat"><div id="defeat-title">💀 リベンジ！</div><div id="defeat-text">すべての進行・装備・ゴールド・コインを引き継ぎます。</div></div>
+<div id="defeat"><div id="defeat-title">💀 リベンジ！</div><div id="defeat-text">すべての進行・装備・ゴールド・コインを引き継ぎます。</div>
+<button class="modal-button" id="revenge-button" style="width:min(80%,360px);margin-top:20px;">🔄 リベンジ！</button></div>
 
-
-<div class="story-overlay" id="story-overlay">
-  <div class="story-box">
-    <div class="modal-title">📖 ストーリー</div>
-    <div class="story-text" id="story-text"></div>
-    <button class="story-next" id="story-next" type="button">次へ</button>
-  </div>
-</div>
 
 <script>
 "use strict";
 
-/* ================================
+/* ========================================
    装備
-================================ */
-const EQUIPMENT=[
-{id:"iceArmor",name:"🧊 氷の鎧",effect:"凍結耐性(中) / 攻撃力×1.7",attack:1.7,resist:{freeze:25}},
-{id:"fireArmor",name:"🔥 炎熱の鎧",effect:"火傷耐性(中) / 攻撃力×1.7",attack:1.7,resist:{burn:25}},
-{id:"thunderCharm",name:"⚡ 雷鳴の護符",effect:"麻痺耐性(中) / 攻撃力×1.7",attack:1.7,resist:{paralyze:25}},
-{id:"poisonRing",name:"☠️ 毒消しの指輪",effect:"毒耐性(中) / 攻撃力×1.7",attack:1.7,resist:{poison:25}},
-{id:"darkGlasses",name:"🌑 闇夜の眼鏡",effect:"暗闇耐性(中) / 攻撃力×1.7",attack:1.7,resist:{dark:25}},
-{id:"curseNecklace",name:"💀 呪い返しの首飾り",effect:"呪い耐性(中) / 攻撃力×1.7",attack:1.7,resist:{curse:25}},
-{id:"holyBandage",name:"💔 聖なる包帯",effect:"回復阻害耐性(中) / 攻撃力×1.7",attack:1.7,resist:{healBlock:25}},
-{id:"lightShoes",name:"🌀 軽身の靴",effect:"鈍化耐性(中) / 攻撃力×1.7",attack:1.7,resist:{slow:25}},
-{id:"heater",name:"装備式ヒーター",effect:"氷耐性(大) / 攻撃力×1.1",attack:1.1,resist:{freeze:45}},
-{id:"guardianArmor",name:"🛡️ 守護の鎧",effect:"全妨害耐性(小) / 攻撃力×1.0",attack:1.0,allResist:10},
-{id:"jetShoes",name:"👟 ジェットシューズ",effect:"鈍化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{slow:45}},
-{id:"brainTrainer",name:"🧠 脳トレソフト",effect:"混乱耐性(大) / 攻撃力×1.1",attack:1.1,resist:{confuse:45}},
-{id:"okayU",name:"🍚 おかゆ",effect:"弱体化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{weaken:45}}
+======================================== */
+
+const EQUIPMENT = [
+    {id:"iceArmor",name:"🧊 氷の鎧",effect:"凍結耐性・中 / 攻撃力×1.7",attack:1.7,resist:{freeze:0.5}},
+    {id:"fireArmor",name:"🔥 炎熱の鎧",effect:"火傷耐性・中 / 攻撃力×1.7",attack:1.7,resist:{burn:0.5}},
+    {id:"thunderCharm",name:"⚡ 雷鳴の護符",effect:"麻痺耐性・中 / 攻撃力×1.7",attack:1.7,resist:{paralyze:0.5}},
+    {id:"poisonRing",name:"☠️ 毒消しの指輪",effect:"毒耐性・中 / 攻撃力×1.7",attack:1.7,resist:{poison:0.5}},
+    {id:"darkGlasses",name:"🌑 闇夜の眼鏡",effect:"暗闇耐性・中 / 攻撃力×1.7",attack:1.7,resist:{dark:0.5}},
+    {id:"curseNecklace",name:"💀 呪い返しの首飾り",effect:"呪い耐性・中 / 攻撃力×1.7",attack:1.7,resist:{curse:0.5}},
+    {id:"holyBandage",name:"💔 聖なる包帯",effect:"回復阻害耐性・中 / 攻撃力×1.7",attack:1.7,resist:{healBlock:0.5}},
+    {id:"lightShoes",name:"🌀 軽身の靴",effect:"鈍化耐性・中 / 攻撃力×1.7",attack:1.7,resist:{slow:0.5}},
+    {id:"heater",name:"装備式ヒーター",effect:"氷耐性(大) / 攻撃力×1.1",attack:1.1,resist:{freeze:0.8}},
+    {id:"guardianArmor",name:"🛡️ 守護の鎧",effect:"全妨害耐性(小) / 攻撃力×1.0",attack:1.0,allResist:0.2},
+    {id:"jetShoes",name:"👟 ジェットシューズ",effect:"鈍化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{slow:0.8}},
+    {id:"brainTrainer",name:"🧠 脳トレソフト",effect:"混乱耐性(大) / 攻撃力×1.1",attack:1.1,resist:{confuse:0.8}},
+    {id:"okayU",name:"🍚 おかゆ",effect:"弱体化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{weaken:0.8}}
 ];
 
-/* ================================
-   ボス：50体ごと
-================================ */
-const BOSSES={
-50:{name:"ハツボ=ス",emoji:"👑",attackRate:2.2},
-100:{name:"ボマアス",emoji:"💣",attackRate:2.2},
-150:{name:"ハントザ",emoji:"🧊",attackRate:2.2,special:"攻撃時10%で氷状態(2秒)"},
-200:{name:"バト=ル",emoji:"💥",attackRate:2.2,special:"攻撃時1.5%で反射"}
+/* ========================================
+   ボス（50体ごと）
+======================================== */
+
+const BOSSES = {
+    50:{name:"ハツボ=ス",emoji:"👑"},
+    100:{name:"ボマアス",emoji:"💣"},
+    150:{name:"ハントザ",emoji:"🧊",special:"攻撃時10%で氷状態(2秒)"},
+    200:{name:"バト=ル",emoji:"💥",special:"攻撃時1.5%で反射"}
 };
 
-/* ================================
-   ストーリー
-   5秒ごとに次の文へ
-================================ */
-const STORIES={
-1:{title:"初開始",lines:["やあ、君が勇者かい？","ああ、そうみたいだね","僕はそらまめ、魔物さ","おやおや、そうキレるなって","君と戦う気はないんだよ","昼飯を食べてくるから","また後で話そうか😏"]},
-50:{title:"50体目撃破",lines:["やあ、ハンバーグ弁当美味しかったよ","話を戻そう、僕は魔物だが戦うのは好きではない","なぜかって？それは秘密だ","モンスター退治を頑張ってるね","いつもモンスター退治ありがとうね","え？何故仲間を退治させるかって？","仲間じゃないからさ"]},
-100:{title:"100体目撃破",lines:["100体も倒したのか、なかなかやるね","え？仲間じゃないってどうゆうことだって？","まあまあ、それは秘密だって言わなかったかい😏","まあ君は知る必要のないことだけどね","次のボスを倒したら","大事な話をしよう","君の運命を変えるものかもしれないな😎"]},
-150:{title:"150体目撃破",lines:["やあ","大事な話をしよう","魔物って言うのは君たちの事に例えると","ゴキブリって生物だね","直接的な悪さは働かないが、卵を産んで、増え続けるんだ","悪さをしていないのになぜ人間は殺そうとするんだい？","まあ君はゴキブリ退治をしているような立場さ","魔物からすると殺し屋みたいなものだ","ん？僕はどんな生き物だって？","マダラシミだよ😏"]},
-200:{title:"200体目撃破",lines:["僕の最近のマイブームは","人間の家でかくれんぼするのがマイブームさ","スリルたっぷりで楽しいだろう？"]},
-250:{title:"250体目撃破",lines:["こんにちは","私はえだまめ","いつもそらまめがお世話になってるね","え？私は誰だって？","私はそらまめの友達よ","とゆうより、そらまめの同居人","そらまめと同じ家で過ごしてるわ","モンスター退治がんばってね"]},
-300:{title:"300体目撃破",lines:["やあ","そらまめだよ","そいえばここはどこだろうね","世界の端っこに触れたら死にかけたよ","どうしてこの世界には端っこがあるんだろうね"]},
-350:{title:"第2章：世界の端へ",lines:["僕そらまめだよ","世界の端っこの向こう側に","人影が見えたんだ","世界の裏側ってやつかな？","行ってみるかい？","おーけー、いこう"]},
-400:{title:"400体目撃破",lines:["モンスター退治は順調かい？","世界の端までまだまだだよ","この先にはシーカイ町がある","この先は海だから、ボートがないといけないね","確かシーカイ町にはボートがあるはず","シーカイ町へLET'S GO!!"]},
-450:{title:"450体目撃破",lines:["ここがシーカイ町さ","ボート持ってきたよ、これで行こう","ん？金もないのにどうやって？だって？","それは知らなくてもいい話だよ😈","まあ海を渡り、世界の端っこまで行こうか😎"]},
-475:{title:"475体目撃破",lines:["あと少しで世界の端っこさ","ここまで5時間の長い旅だったね","このまま進もうか","ん？なんだって？","お腹空いた？だって？","僕のハンバーグ弁当あげるよ","今度ハンバーグ弁当奢ってよね"]},
-500:{title:"第3章：ドメイン地方",lines:["ここが世界の端っこ","このバリアを破壊すれば進めるね","もう破壊するね","よし壊れた、先へ進もう"]},
-525:{title:"525体目撃破",lines:["ここはドメイン地方らしいね","どうやらこの世界は2つの世界に別れているらしい","さっき居たのが西地方、今いるのが東地方","コンビニに...あ、あ、","ハンバーグ弁当が..ないんだが","西世界限定販売ってやつか","代わりにWlバーガーを食べるとするか"]},
-550:{title:"550体目撃破",lines:["WLバーガーには熊肉が入っているのか、癖が強くて苦手だ","そんなことより、いやハンバーグ弁当の方が大事だが","魔物は、悪い奴だけではないんだ","前に他の魔物にハンバーグ弁当買ってもらったよ","とても美味しかった、特にマヨネーズがね","あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？","まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"]},
-600:{title:"600体目撃破",lines:["この先は凶悪な魔物の住処だ","人を殺して逮捕されたが脱獄したようなやつらだ","ぜひそんなクズどもは殺してくれ","人も襲うゴキブリなんて世界の終わりだろう？"]}
-};
-
-const SAVE_KEY="mondou_save_v2";
-const gameData={
-chapter:1,monsterNumber:1,monsterHP:30,monsterMaxHP:30,
-attackPower:10,attackUpgradeCost:10,
-playerMaxHP:100,playerHP:100,hpUpgradeCost:10,
-gold:0,gachaCoins:0,equipped:[],owned:{},storySeen:{}
-};
-
-let enemyTimer=null;
-let statusTimer=null;
-let currentEnemy=null;
-let storyTimer=null;
-
-const $=id=>document.getElementById(id);
-
-function formatNumber(n){
- if(!Number.isFinite(n))return"∞";
- const units=["","万","億","兆","京","垓","秭","穣","溝","澗","正","載","極","恒河沙","阿僧祇","那由他","不可思議","無量大数"];
- if(n<10000)return Math.floor(n).toLocaleString("ja-JP");
- let x=n,i=0;
- while(x>=10000&&i<units.length-1){x/=10000;i++}
- return (x>=100?Math.floor(x):Math.floor(x*10)/10)+units[i];
+function isBoss(n){
+    return n % 50 === 0;
 }
 
-/* 敵HPは強くインフレ、攻撃力は緩やかに増加 */
-function normalHP(n){return 30*Math.pow(1.17,n-1)}
-function normalAttack(n){return Math.floor(5+n*1.5)}
-function isBoss(n){return !!BOSSES[n]}
-
-function attackMultiplier(){
- return gameData.equipped.reduce((m,id)=>{
-  const e=EQUIPMENT.find(x=>x.id===id);
-  return m*(e?e.attack:1);
- },1);
-}
-
-function totalResistance(type){
- let r=0;
- for(const id of gameData.equipped){
-  const e=EQUIPMENT.find(x=>x.id===id);
-  if(!e)continue;
-  r+=e.allResist||0;
-  r+=e.resist?.[type]||0;
- }
- return Math.min(100,r);
-}
-
-function chapterFor(n){
- if(n<=350)return 1;
- if(n<=500)return 2;
- return 3;
-}
-
-function makeEnemy(){
- const n=gameData.monsterNumber;
- const boss=BOSSES[n];
- const max=normalHP(n)*(boss?5:1);
- currentEnemy={
-  number:n,boss:!!boss,
-  name:boss?boss.name:`魔物 ${n}`,
-  emoji:boss?boss.emoji:["👾","🟢","👺","🐺","🐉"][((n-1)%5)],
-  maxHP:max,hp:Math.min(gameData.monsterHP,max),
-  attack:boss?Math.floor(normalAttack(n)*boss.attackRate):normalAttack(n)
- };
- if(currentEnemy.hp<=0)currentEnemy.hp=max;
- updateUI();
-}
-
-function saveGame(){
- try{
-  localStorage.setItem(SAVE_KEY,JSON.stringify(gameData));
- }catch(e){console.error(e)}
-}
-
-function loadGame(){
- try{
-  const raw=localStorage.getItem(SAVE_KEY);
-  if(!raw)return;
-  const saved=JSON.parse(raw);
-  if(!saved||typeof saved!=="object")return;
-  Object.assign(gameData,saved);
-  if(!Array.isArray(gameData.equipped))gameData.equipped=[];
-  if(!gameData.owned||typeof gameData.owned!=="object")gameData.owned={};
-  if(!gameData.storySeen||typeof gameData.storySeen!=="object")gameData.storySeen={};
- }catch(e){console.error(e)}
-}
-
-function updateUI(){
- const e=currentEnemy;
- if(!e)return;
- $("enemy-name").textContent=e.boss?`👑 ${e.name}`:e.name;
- $("hp-text").textContent=`HP ${formatNumber(e.hp)} / ${formatNumber(e.maxHP)}`;
- $("hp-bar").style.width=`${Math.max(0,Math.min(100,e.hp/e.maxHP*100))}%`;
- $("enemy").textContent=e.emoji;
- $("enemy").classList.toggle("boss",e.boss);
- $("gold").textContent=`💰 ${formatNumber(gameData.gold)} G　🪙 ${gameData.gachaCoins}`;
- $("status").textContent=statusText();
- $("upgrade-info").innerHTML=`❤️ HP：${formatNumber(gameData.playerMaxHP)}　⚔️攻撃：${formatNumber(gameData.attackPower*attackMultiplier())}<br>HP強化：${formatNumber(gameData.hpUpgradeCost)} G / 攻撃強化：${formatNumber(gameData.attackUpgradeCost)} G`;
- renderEquipment();
- $("game").style.background=chapterBackgrounds[chapterFor(gameData.monsterNumber)];
-}
-
-const chapterBackgrounds={
-1:"linear-gradient(to bottom,#87ceeb 0%,#bdefff 60%,#72c95c 60%,#4e9d3d 100%)",
-2:"linear-gradient(to bottom,#263238 0%,#455a64 60%,#263238 60%,#111 100%)",
-3:"linear-gradient(to bottom,#4527a0 0%,#7e57c2 55%,#311b92 55%,#12005e 100%)"
-};
-
-function statusText(){
- if(statusTimer)return currentStatus;
- return currentEnemy?.boss?`👑 ボス ⚔️攻撃力 ${formatNumber(currentEnemy.attack)}（3秒ごと）`:"👾 通常敵：攻撃してこない";
-}
-let currentStatus="";
-
-function showDamage(dmg){
- const el=document.createElement("div");
- el.className="damage";el.textContent=`-${formatNumber(dmg)}`;
- const r=$("enemy").getBoundingClientRect();
- el.style.left=(r.left+r.width/2-30+Math.random()*60)+"px";
- el.style.top=(r.top+r.height/2)+"px";
- document.body.appendChild(el);
- setTimeout(()=>el.remove(),800);
-}
-
-function playerAttack(){
- if(!currentEnemy||currentEnemy.hp<=0)return;
- const damage=gameData.attackPower*attackMultiplier();
- currentEnemy.hp=Math.max(0,currentEnemy.hp-damage);
- gameData.monsterHP=currentEnemy.hp;
- $("enemy").classList.remove("enemy-hit");void $("enemy").offsetWidth;$("enemy").classList.add("enemy-hit");
- showDamage(damage);
- if(currentEnemy.hp<=0)defeatMonster();
- else{
-  saveGame();
-  if(currentEnemy.boss)startBossTimer();
-  updateUI();
- }
-}
-
-function startBossTimer(){
- if(enemyTimer)return;
- enemyTimer=setTimeout(()=>{
-  enemyTimer=null;
-  bossAttack();
- },3000);
-}
-
-function bossAttack(){
- if(!currentEnemy||currentEnemy.hp<=0)return;
- const dmg=currentEnemy.attack;
- gameData.playerHP=Math.max(0,gameData.playerHP-dmg);
- if(currentEnemy.number===150&&Math.random()<.10){
-  const resistance=totalResistance("freeze");
-  const ms=2000*(1-resistance/100);
-  if(ms>0){
-   statusTimer=setTimeout(()=>{statusTimer=null;currentStatus="";updateUI()},ms);
-   currentStatus=`🧊 氷状態！ ${Math.round(ms/1000*10)/10}秒 攻撃不能`;
-  }
- }
- if(currentEnemy.number===200&&Math.random()<.015){
-  const reflected=dmg*.05;
-  currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
-  showDamage(reflected);
- }
- if(gameData.playerHP<=0){
-  saveGame();
-  showDefeatAndRevenge();
-  return;
- }
- saveGame();updateUI();startBossTimer();
-}
-
-function defeatMonster(){
- if(enemyTimer){clearTimeout(enemyTimer);enemyTimer=null}
- gameData.gold+=3;
- gameData.gold+=5; /* 1体ごとに+5：後半へ向けた報酬インフレ */
- if(currentEnemy.boss)gameData.gachaCoins+=1;
- gameData.playerHP=gameData.playerMaxHP;
- gameData.monsterNumber++;
- gameData.chapter=chapterFor(gameData.monsterNumber);
- gameData.monsterMaxHP=normalHP(gameData.monsterNumber);
- gameData.monsterHP=gameData.monsterMaxHP;
- saveGame();
- const defeatedNumber = gameData.monsterNumber - 1;
- const story=STORIES[defeatedNumber];
- if(story&&!gameData.storySeen[defeatedNumber]){
-  gameData.storySeen[defeatedNumber]=true;
-  showStory(story,()=>{makeEnemy();saveGame()});
- }else makeEnemy();
-}
-
-function showDefeatAndRevenge(){
- $("defeat").classList.add("show");
- setTimeout(()=>{
-  $("defeat").classList.remove("show");
-  gameData.playerHP=gameData.playerMaxHP;
-  gameData.monsterHP=currentEnemy.maxHP;
-  currentEnemy.hp=currentEnemy.maxHP;
-  saveGame();
-  updateUI();
- },1200);
-}
-
-/* ================================
-   ストーリー：自動5秒
-================================ */
-function showStory(story,done){
- $("story-overlay").classList.add("show");
- $("story-title").textContent=story.title;
- let i=0;
- $("story-text").textContent=story.lines[i];
- const next=()=>{
-  clearTimeout(storyTimer);
-  i++;
-  if(i>=story.lines.length){
-   $("story-overlay").classList.remove("show");
-   $("story-next").onclick=null;
-   if(done)done();
-   return;
-  }
-  $("story-text").textContent=story.lines[i];
-  storyTimer=setTimeout(next,5000);
- };
- $("story-next").onclick=next;
- storyTimer=setTimeout(next,5000);
-}
-
-function renderEquipment(){
- $("equip-list").innerHTML=EQUIPMENT.map(e=>{
-  const owned=gameData.owned[e.id]||0;
-  const equipped=gameData.equipped.includes(e.id);
-  return `<div class="equip-row ${equipped?"equipped":""}">
-  <b>${e.name}</b> ${equipped?'<span class="badge">装備中</span>':""}<br>
-  <span class="small">${e.effect}<br>所持：${owned}</span><br>
-  ${owned?`<button onclick="toggleEquipment('${e.id}')">${equipped?"外す":"装備する"}</button>`:""}
-  <div style="clear:both"></div></div>`;
- }).join("");
-}
-
-window.toggleEquipment=function(id){
- const i=gameData.equipped.indexOf(id);
- if(i>=0)gameData.equipped.splice(i,1);
- else{
-  if(gameData.equipped.length>=3){alert("装備できるのは3個まで！");return}
-  if((gameData.owned[id]||0)<=0)return;
-  gameData.equipped.push(id);
- }
- saveGame();updateUI();
-};
-
-function rollGacha(){
- if(gameData.gachaCoins<1){alert("ガチャコインが足りない！");return}
- gameData.gachaCoins--;
- const r=Math.random();
- let id;
- if(r<.05)id="iceArmor";
- else{
-  const rest=EQUIPMENT.filter(e=>e.id!=="iceArmor");
-  id=rest[Math.floor(Math.random()*rest.length)].id;
- }
- const e=EQUIPMENT.find(x=>x.id===id);
- if(gameData.owned[id]){
-  gameData.gachaCoins++;
-  $("gacha-result").innerHTML=`<p>🎯 ${e.name}<br>ダブり！ → 🪙 1枚に変換</p>`;
- }else{
-  gameData.owned[id]=1;
-  $("gacha-result").innerHTML=`<p>🎉 ${e.name} GET！<br>${e.effect}</p>`;
- }
- saveGame();updateUI();
-}
-
-function openModal(id){$(id).classList.add("show")}
-function closeModals(){document.querySelectorAll(".modal").forEach(x=>x.classList.remove("show"))}
-
-$("attack-button").onclick=playerAttack;
-$("upgrade-button").onclick=()=>{updateUI();openModal("upgrade-modal")};
-$("bag-button").onclick=()=>{updateUI();openModal("bag-modal")};
-$("shop-button").onclick=()=>openModal("shop-modal");
-$("upgrade-close").onclick=closeModals;
-$("bag-close").onclick=closeModals;
-$("shop-close").onclick=closeModals;
-$("gacha-roll").onclick=rollGacha;
-
-$("hp-upgrade-buy").onclick=()=>{
- if(gameData.gold<gameData.hpUpgradeCost){alert("ゴールドが足りない！");return}
- gameData.gold-=gameData.hpUpgradeCost;
- gameData.playerMaxHP+=20;
- gameData.playerHP=gameData.playerMaxHP;
- gameData.hpUpgradeCost=Math.floor(gameData.hpUpgradeCost*1.5);
- saveGame();updateUI();
-};
-
-$("attack-upgrade-buy").onclick=()=>{
- if(gameData.gold<gameData.attackUpgradeCost){alert("ゴールドが足りない！");return}
- gameData.gold-=gameData.attackUpgradeCost;
- gameData.attackPower+=5;
- gameData.attackUpgradeCost=Math.floor(gameData.attackUpgradeCost*1.5);
- saveGame();updateUI();
-};
-
-/* 初期化 */
-loadGame();
-gameData.chapter=chapterFor(gameData.monsterNumber);
-makeEnemy();
-
-/* 初回ストーリー */
-if(gameData.monsterNumber===1&&!gameData.storySeen[1]){
- gameData.storySeen[1]=true;
- showStory(STORIES[1],()=>{saveGame();updateUI()});
+function bossName(n){
+    return BOSSES[n]?.name || `ボス ${n}`;
 }
 
 /* ========================================
-   追加ゲームシステム
+   ストーリー
+   初回は開始時、各登録体数の撃破後
+   1文ずつ5秒間隔
 ======================================== */
 
-const EXTRA_SAVE_KEY = "mondou_extra_save";
-
-const extraData = {
-    playerHP: 100,
-    playerMaxHP: 100,
-    gachaCoins: 0,
-    equipment: [],
-    status: {},
-    storySeen: {},
-    revenge: false
+const STORIES = {
+    1:["やあ、君が勇者かい？","ああ、そうみたいだね","僕はそらまめ、魔物さ","おやおや、そうキレるなって","君と戦う気はないんだよ","昼飯を食べてくるから","また後で話そうか😏"],
+    50:["やあ、ハンバーグ弁当美味しかったよ","話を戻そう、僕は魔物だが戦うのは好きではない","なぜかって？それは秘密だ","モンスター退治を頑張ってるね","いつもモンスター退治ありがとうね","え？何故仲間を退治させるかって？","仲間じゃないからさ"],
+    100:["100体も倒したのか、なかなかやるね","え？仲間じゃないってどうゆうことだって？","まあまあ、それは秘密だって言わなかったかい😏","まあ君は知る必要のないことだけどね","次のボスを倒したら","大事な話をしよう","君の運命を変えるものかもしれないな😎"],
+    150:["やあ","大事な話をしよう","魔物って言うのは君たちの事に例えると","ゴキブリって生物だね","直接的な悪さは働かないが、卵を産んで、増え続けるんだ","悪さをしていないのになぜ人間は殺そうとするんだい？","まあ君はゴキブリ退治をしているような立場さ","魔物からすると殺し屋みたいなものだ","ん？僕はどんな生き物だって？","マダラシミだよ😏"],
+    200:["僕の最近のマイブームは","人間の家でかくれんぼするのがマイブームさ","スリルたっぷりで楽しいだろう？"],
+    250:["こんにちは","私はえだまめ","いつもそらまめがお世話になってるね","え？私は誰だって？","私はそらまめの友達よ","とゆうより、そらまめの同居人","そらまめと同じ家で過ごしてるわ","モンスター退治がんばってね"],
+    300:["やあ","そらまめだよ","そいえばここはどこだろうね","世界の端っこに触れたら死にかけたよ","どうしてこの世界には端っこがあるんだろうね"],
+    350:["僕そらまめだよ","世界の端っこの向こう側に","人影が見えたんだ","世界の裏側ってやつかな？","行ってみるかい？","おーけー、いこう"],
+    400:["モンスター退治は順調かい？","世界の端までまだまだだよ","この先にはシーカイ町がある","この先は海だから、ボートがないといけないね","確かシーカイ町にはボートがあるはず","シーカイ町へLET'S GO!!"],
+    450:["ここがシーカイ町さ","ボート持ってきたよ、これで行こう","ん？金もないのにどうやって？だって？","それは知らなくてもいい話だよ😈","まあ海を渡り、世界の端っこまで行こうか😎"],
+    475:["あと少しで世界の端っこさ","ここまで5時間の長い旅だったね","このまま進もうか","ん？なんだって？","お腹空いた？だって？","僕のハンバーグ弁当あげるよ","今度ハンバーグ弁当奢ってよね"],
+    500:["ここが世界の端っこ","このバリアを破壊すれば進めるね","もう破壊するね","よし壊れた、先へ進もう"],
+    525:["ここはドメイン地方らしいね","どうやらこの世界は2つの世界に別れているらしい","さっき居たのが西地方、今いるのが東地方","コンビニに...あ、あ、","ハンバーグ弁当が..ないんだが","西世界限定販売ってやつか","代わりにWlバーガーを食べるとするか"],
+    550:["WLバーガーには熊肉が入っているのか、癖が強くて苦手だ","そんなことより、いやハンバーグ弁当の方が大事だが","魔物は、悪い奴だけではないんだ","前に他の魔物にハンバーグ弁当買ってもらったよ","とても美味しかった、特にマヨネーズがね","あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？","まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"],
+    600:["この先は凶悪な魔物の住処だ","人を殺して逮捕されたが脱獄したようなやつらだ","ぜひそんなクズどもは殺してくれ","人も襲うゴキブリなんて世界の終わりだろう？"]
 };
 
-const equipmentList = [
-    {name:"🧊 氷の鎧", effect:"凍結耐性・中 / 攻撃力×1.7", status:"freeze", rate:5},
-    {name:"🔥 炎熱の鎧", effect:"火傷耐性・中 / 攻撃力×1.7", status:"burn", rate:5},
-    {name:"⚡ 雷鳴の護符", effect:"麻痺耐性・中 / 攻撃力×1.7", status:"paralysis", rate:5},
-    {name:"☠️ 毒消しの指輪", effect:"毒耐性・中 / 攻撃力×1.7", status:"poison", rate:5},
-    {name:"🌑 闇夜の眼鏡", effect:"暗闇耐性・中 / 攻撃力×1.7", status:"dark", rate:5},
-    {name:"💀 呪い返しの首飾り", effect:"呪い耐性・中 / 攻撃力×1.7", status:"curse", rate:5},
-    {name:"💔 聖なる包帯", effect:"回復阻害耐性・中 / 攻撃力×1.7", status:"healblock", rate:5},
-    {name:"🌀 軽身の靴", effect:"鈍化耐性・中 / 攻撃力×1.7", status:"slow", rate:5},
-    {name:"🌡️ 装備式ヒーター", effect:"氷耐性・大 / 攻撃力×1.1", status:"freeze", rate:5},
-    {name:"🛡️ 守護の鎧", effect:"全妨害耐性・小 / 攻撃力×1.0", status:"all", rate:5},
-    {name:"👟 ジェットシューズ", effect:"鈍化耐性・大 / 攻撃力×1.1", status:"slow", rate:5},
-    {name:"🧠 脳トレソフト", effect:"混乱耐性・大 / 攻撃力×1.1", status:"confuse", rate:5},
-    {name:"🍚 おかゆ", effect:"弱体化耐性・大 / 攻撃力×1.1", status:"weaken", rate:5}
-];
+/* ========================================
+   セーブデータ
+======================================== */
 
-const bossNames = {
-    50:"ハツボ=ス",
-    100:"ボマアス",
-    150:"ハントザ",
-    200:"バト=ル"
+const SAVE_KEY = "mondou_save";
+
+const gameData = {
+    chapter:1,
+    monsterNumber:1,
+    monsterHP:30,
+    monsterMaxHP:30,
+    attackPower:10,
+    gold:0,
+    upgradeCost:10,
+
+    playerHP:100,
+    playerMaxHP:100,
+    hpUpgradeCost:10,
+
+    gachaCoins:0,
+    ownedEquipment:{},
+    equipped:[],
+    storySeen:{}
 };
 
-const bossAbilities = {
-    150:{type:"freeze", text:"⚠️ 攻撃時10%で氷状態(2秒)"},
-    200:{type:"reflect", text:"⚠️ 1.5%で反射"}
-};
+let currentEnemy = null;
+let bossTimer = null;
+let statusTimer = null;
+let currentStatus = "";
+let storyTimer = null;
+let defeatedLock = false;
 
-const stories = {
-    0:[
-        "やあ、君が勇者かい？",
-        "ああ、そうみたいだね",
-        "僕はそらまめ、魔物さ",
-        "おやおや、そうキレるなって",
-        "君と戦う気はないんだよ",
-        "昼飯を食べてくるから\nまた後で話そうか😏"
-    ],
-    50:[
-        "やあ、ハンバーグ弁当美味しかったよ",
-        "話を戻そう、僕は魔物だが戦うのは好きではない",
-        "なぜかって？それは秘密だ",
-        "モンスター退治を頑張ってるね",
-        "いつもモンスター退治ありがとうね",
-        "え？何故仲間を退治させるかって？",
-        "仲間じゃないからさ"
-    ],
-    100:[
-        "100体も倒したのか、なかなかやるね",
-        "え？仲間じゃないってどうゆうことだって？",
-        "まあまあ、それは秘密だって言わなかったかい😏",
-        "まあ君は知る必要のないことだけどね",
-        "次のボスを倒したら\n大事な話をしよう",
-        "君の運命を変えるものかもしれないな😎"
-    ],
-    150:[
-        "やあ",
-        "大事な話をしよう",
-        "魔物って言うのは君たちの事に例えると",
-        "ゴキブリって生物だね",
-        "直接的な悪さは働かないが、卵を産んで、増え続けるんだ",
-        "悪さをしていないのになぜ人間は殺そうとするんだい？",
-        "まあ君はゴキブリ退治をしているような立場さ",
-        "魔物からすると殺し屋みたいなものだ",
-        "ん？僕はどんな生き物だって？",
-        "マダラシミだよ😏"
-    ],
-    200:[
-        "僕の最近のマイブームは",
-        "人間の家でかくれんぼするのがマイブームさ",
-        "スリルたっぷりで楽しいだろう？"
-    ],
-    250:[
-        "こんにちは",
-        "私はえだまめ",
-        "いつもそらまめがお世話になってるね",
-        "え？私は誰だって？",
-        "私はそらまめの友達よ",
-        "とゆうより、そらまめの同居人",
-        "そらまめと同じ家で過ごしてるわ",
-        "モンスター退治がんばってね"
-    ],
-    300:[
-        "やあ",
-        "そらまめだよ",
-        "そいえばここはどこだろうね",
-        "世界の端っこに触れたら死にかけたよ",
-        "どうしてこの世界には端っこがあるんだろうね"
-    ],
-    350:[
-        "僕そらまめだよ",
-        "世界の端っこの向こう側に",
-        "人影が見えたんだ",
-        "世界の裏側ってやつかな？",
-        "行ってみるかい？",
-        "おーけー、いこう"
-    ],
-    400:[
-        "モンスター退治は順調かい？",
-        "世界の端までまだまだだよ",
-        "この先にはシーカイ町がある",
-        "この先は海だから、ボートがないといけないね",
-        "確かシーカイ町にはボートがあるはず",
-        "シーカイ町へLET'S GO!!"
-    ],
-    450:[
-        "ここがシーカイ町さ",
-        "ボート持ってきたよ、これで行こう",
-        "ん？金もないのにどうやって？だって？",
-        "それは知らなくてもいい話だよ😈",
-        "まあ海を渡り、世界の端っこまで行こうか😎"
-    ],
-    475:[
-        "あと少しで世界の端っこさ",
-        "ここまで5時間の長い旅だったね",
-        "このまま進もうか",
-        "ん？なんだって？",
-        "お腹空いた？だって？",
-        "僕のハンバーグ弁当あげるよ",
-        "今度ハンバーグ弁当奢ってよね"
-    ],
-    500:[
-        "ここが世界の端っこ",
-        "このバリアを破壊すれば進めるね",
-        "もう破壊するね",
-        "よし壊れた、先へ進もう"
-    ],
-    525:[
-        "ここはドメイン地方らしいね",
-        "どうやらこの世界は2つの世界に別れているらしい",
-        "さっき居たのが西地方、今いるのが東地方",
-        "コンビニに...あ、あ、",
-        "ハンバーグ弁当が..ないんだが",
-        "西世界限定販売ってやつか",
-        "代わりにWlバーガーを食べるとするか"
-    ],
-    550:[
-        "WLバーガーには熊肉が入っているのか、癖が強くて苦手だ",
-        "そんなことより、いやハンバーグ弁当の方が大事だが",
-        "魔物は、悪い奴だけではないんだ",
-        "前に他の魔物にハンバーグ弁当買ってもらったよ",
-        "とても美味しかった、特にマヨネーズがね",
-        "あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？",
-        "まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"
-    ],
-    600:[
-        "この先は凶悪な魔物の住処だ",
-        "人を殺して逮捕されたが脱獄したようなやつらだ",
-        "ぜひそんなクズどもは殺してくれ",
-        "人も襲うゴキブリなんて世界の終わりだろう？"
-    ]
-};
+/* ========================================
+   DOM
+======================================== */
 
-function loadExtra(){
+const $ = id => document.getElementById(id);
+
+/* ========================================
+   セーブ / ロード
+======================================== */
+
+function saveGame(){
     try{
-        const saved=localStorage.getItem(EXTRA_SAVE_KEY);
-        if(saved) Object.assign(extraData, JSON.parse(saved));
-    }catch(e){ console.error(e); }
+        localStorage.setItem(SAVE_KEY,JSON.stringify(gameData));
+    }catch(error){
+        console.error("セーブに失敗しました:",error);
+    }
 }
-function saveExtra(){
-    try{ localStorage.setItem(EXTRA_SAVE_KEY,JSON.stringify(extraData)); }catch(e){}
+
+function loadGame(){
+    try{
+        const raw=localStorage.getItem(SAVE_KEY);
+        if(!raw)return;
+
+        const saved=JSON.parse(raw);
+        if(!saved || typeof saved!=="object")return;
+
+        Object.assign(gameData,saved);
+
+        if(!Array.isArray(gameData.equipped))gameData.equipped=[];
+        if(!gameData.ownedEquipment || typeof gameData.ownedEquipment!=="object")gameData.ownedEquipment={};
+        if(!gameData.storySeen || typeof gameData.storySeen!=="object")gameData.storySeen={};
+
+        gameData.monsterNumber=Math.max(1,Number(gameData.monsterNumber)||1);
+        gameData.playerMaxHP=Math.max(1,Number(gameData.playerMaxHP)||100);
+        gameData.playerHP=Math.max(0,Math.min(gameData.playerMaxHP,Number(gameData.playerHP)||gameData.playerMaxHP));
+        gameData.gachaCoins=Math.max(0,Number(gameData.gachaCoins)||0);
+    }catch(error){
+        console.error("ロードに失敗しました:",error);
+    }
 }
-function isBoss(n){ return n%50===0; }
+
+/* ========================================
+   敵ステータス
+======================================== */
+
+function normalHP(n){
+    /* HPは伸ばすが、攻撃力ほど極端にはしない */
+    return Math.floor(30*Math.pow(1.12,n-1));
+}
+
+function normalAttack(n){
+    /* 敵攻撃力は緩やかにインフレ */
+    return Math.floor(5+n*1.25);
+}
+
+function createEnemy(){
+    const n=gameData.monsterNumber;
+    const boss=isBoss(n);
+    const baseHP=normalHP(n);
+
+    currentEnemy={
+        number:n,
+        boss,
+        name:boss?bossName(n):`魔物 ${n}`,
+        emoji:boss?(BOSSES[n]?.emoji||"👑"):["👾","🟢","👺","🐺","🐉"][((n-1)%5)],
+        maxHP:boss?baseHP*5:baseHP,
+        hp:boss?baseHP*5:baseHP,
+        attack:boss?Math.floor(normalAttack(n)*1.8):normalAttack(n)
+    };
+
+    gameData.monsterMaxHP=currentEnemy.maxHP;
+    gameData.monsterHP=currentEnemy.hp;
+
+    updateUI();
+
+    if(boss)startBossTimer();
+}
+
+/* ========================================
+   装備効果
+======================================== */
 
 function getAttackMultiplier(){
-    return extraData.equipment.reduce((m,e)=>{
-        const item=equipmentList.find(x=>x.name===e);
-        return m*(item?.rate===5 && ["🧊","🔥","⚡","☠️","🌑","💀","💔","🌀"].some(x=>item.name.startsWith(x)) ? 1.7 : item?.name==="🛡️ 守護の鎧" ? 1 : 1.1);
+    return gameData.equipped.reduce((mult,id)=>{
+        const e=EQUIPMENT.find(x=>x.id===id);
+        return mult*(e?e.attack:1);
     },1);
 }
 
-function updateExtraUI(){
-    const hp=Math.max(0,Math.min(extraData.playerHP,extraData.playerMaxHP));
-    $("player-hp-text").textContent=`❤️ HP ${hp} / ${extraData.playerMaxHP}`;
-    $("player-hp-bar").style.width=(hp/extraData.playerMaxHP*100)+"%";
-    $("gacha-info").textContent=`🪙 ガチャコイン：${extraData.gachaCoins}枚`;
-    $("boss-badge").textContent=isBoss(gameData.monsterNumber)?`👑 BOSS：${bossNames[gameData.monsterNumber]||"ボス"}`:"";
-    $("status-line").textContent=bossAbilities[gameData.monsterNumber]?.text||"";
-    $("bag-content").innerHTML=extraData.equipment.length
-        ? extraData.equipment.map((n,i)=>{
-            const x=equipmentList.find(e=>e.name===n);
-            return `<div class="equip-item"><b>${n}</b><br>${x?.effect||""}</div>`;
-        }).join("")
-        : "現在装備はありません。";
+function getResistance(type){
+    let resistance=0;
+
+    for(const id of gameData.equipped){
+        const e=EQUIPMENT.find(x=>x.id===id);
+        if(!e)continue;
+        resistance+=e.resist?.[type]||0;
+        resistance+=e.allResist||0;
+    }
+
+    return Math.min(1,resistance);
 }
 
-function $(id){ return document.getElementById(id); }
+/* ========================================
+   UI
+======================================== */
 
-function showStory(lines,done){
-    const overlay=$("story-overlay"), text=$("story-text");
-    let i=0;
-    overlay.classList.add("show");
-    text.textContent=lines[0];
-    let timer=setInterval(()=>{
+function updateUI(){
+    if(!currentEnemy)return;
+
+    const hp=Math.max(0,currentEnemy.hp);
+    const maxHP=Math.max(1,currentEnemy.maxHP);
+
+    $("enemy-name").textContent=currentEnemy.boss
+        ? `👑 ${currentEnemy.name}`
+        : currentEnemy.name;
+
+    $("hp-text").textContent=`HP ${formatNumber(hp)} / ${formatNumber(maxHP)}`;
+    $("hp-bar").style.width=`${Math.max(0,Math.min(100,hp/maxHP*100))}%`;
+
+    $("enemy").textContent=currentEnemy.emoji;
+    $("enemy").classList.toggle("boss",currentEnemy.boss);
+
+    $("gold").textContent=`💰 ${formatNumber(gameData.gold)} G　🪙 ${gameData.gachaCoins}`;
+
+    $("upgrade-info").innerHTML=
+        `⚔️ 攻撃力：${formatNumber(gameData.attackPower*getAttackMultiplier())}<br>`+
+        `❤️ 最大HP：${formatNumber(gameData.playerMaxHP)}<br>`+
+        `⚔️ 攻撃強化：${formatNumber(gameData.upgradeCost)} G<br>`+
+        `❤️ HP強化：${formatNumber(gameData.hpUpgradeCost)} G`;
+
+    $("player-hp-text").textContent=
+        `❤️ HP ${formatNumber(gameData.playerHP)} / ${formatNumber(gameData.playerMaxHP)}`;
+
+    $("player-hp-bar").style.width=
+        `${Math.max(0,Math.min(100,gameData.playerHP/gameData.playerMaxHP*100))}%`;
+
+    $("boss-badge").textContent=currentEnemy.boss
+        ? `👑 ${currentEnemy.name}　⚔️ ${formatNumber(currentEnemy.attack)} / 3秒`
+        : "";
+
+    $("status-line").textContent=
+        currentStatus ||
+        (currentEnemy.boss ? (BOSSES[currentEnemy.number]?.special||"") : "👾 通常敵：攻撃してこない");
+
+    renderEquipment();
+}
+
+function formatNumber(n){
+    if(!Number.isFinite(n))return "∞";
+    if(n<10000)return Math.floor(n).toLocaleString("ja-JP");
+
+    const units=["","万","億","兆","京","垓","秭","穣","溝","澗","正","載","極"];
+    let x=n,i=0;
+
+    while(x>=10000 && i<units.length-1){
+        x/=10000;
         i++;
-        if(i>=lines.length){ clearInterval(timer); return; }
-        text.textContent=lines[i];
-    },5000);
-    $("story-next").onclick=()=>{
-        clearInterval(timer);
-        overlay.classList.remove("show");
-        if(done) done();
-    };
-}
-
-function rollGacha(){
-    if(extraData.gachaCoins<1) return alert("ガチャコインが足りない！");
-    extraData.gachaCoins--;
-    let item;
-    if(Math.random()<0.05) item=equipmentList[0];
-    else item=equipmentList[1+Math.floor(Math.random()*(equipmentList.length-1))];
-    const owned=extraData.equipment.includes(item.name);
-    if(owned){
-        extraData.gachaCoins++;
-        $("gacha-result").textContent=`🎯 ${item.name} はダブり！ → 🪙 コイン1枚`;
-    }else{
-        extraData.equipment.push(item.name);
-        $("gacha-result").textContent=`🎉 ${item.name} GET！`;
     }
-    updateExtraUI(); saveExtra();
+
+    return `${Math.floor(x*10)/10}${units[i]}`;
 }
 
-$("gacha-button").addEventListener("click",rollGacha);
+/* ========================================
+   攻撃
+======================================== */
 
-function damagePlayer(){
-    if(!isBoss(gameData.monsterNumber)) return;
-    const bossAttack=Math.max(5,Math.floor(20+gameData.monsterNumber*0.35));
-    extraData.playerHP=Math.max(0,extraData.playerHP-bossAttack);
-    updateExtraUI(); saveExtra();
-    if(extraData.playerHP<=0){
-        $("defeat-title").textContent="💀 全滅！";
-        $("defeat-text").textContent="すべてを引き継いでリベンジできる！";
-        $("revenge-button").style.display="block";
-        $("defeat").classList.add("show");
+$("attack-button").addEventListener("click",attack);
+
+function attack(){
+    if(defeatedLock || !currentEnemy || currentEnemy.hp<=0)return;
+
+    if(currentStatus.includes("氷状態")){
+        return;
     }
+
+    const damage=Math.max(1,Math.floor(gameData.attackPower*getAttackMultiplier()));
+
+    currentEnemy.hp=Math.max(0,currentEnemy.hp-damage);
+    gameData.monsterHP=currentEnemy.hp;
+
+    $("enemy").classList.remove("enemy-hit");
+    void $("enemy").offsetWidth;
+    $("enemy").classList.add("enemy-hit");
+
+    showDamage(damage);
+
+    if(currentEnemy.hp<=0){
+        defeatMonster();
+        return;
+    }
+
+    saveGame();
+    updateUI();
 }
 
-setInterval(damagePlayer,3000);
+function showDamage(damage){
+    const el=document.createElement("div");
+    el.className="damage";
+    el.textContent=`-${formatNumber(damage)}`;
+
+    const rect=$("enemy").getBoundingClientRect();
+
+    el.style.left=
+        `${rect.left+rect.width/2-30+Math.random()*60}px`;
+
+    el.style.top=
+        `${rect.top+rect.height/2}px`;
+
+    document.body.appendChild(el);
+
+    setTimeout(()=>el.remove(),800);
+}
+
+/* ========================================
+   ボス攻撃
+======================================== */
+
+function startBossTimer(){
+    clearTimeout(bossTimer);
+
+    if(!currentEnemy?.boss)return;
+
+    bossTimer=setTimeout(()=>{
+        bossTimer=null;
+        bossAttack();
+    },3000);
+}
+
+function bossAttack(){
+    if(!currentEnemy?.boss || currentEnemy.hp<=0)return;
+
+    const damage=currentEnemy.attack;
+
+    gameData.playerHP=Math.max(0,gameData.playerHP-damage);
+
+    /* 150体目：10%で氷状態 */
+    if(currentEnemy.number===150 && Math.random()<0.10){
+        const resistance=getResistance("freeze");
+        const duration=2000*(1-resistance);
+
+        if(duration>0){
+            clearTimeout(statusTimer);
+            currentStatus=`🧊 氷状態！ ${Math.ceil(duration/100)/10}秒 攻撃不能`;
+
+            statusTimer=setTimeout(()=>{
+                currentStatus="";
+                statusTimer=null;
+                updateUI();
+            },duration);
+        }
+    }
+
+    /* 200体目：1.5%で反射
+       反射量は「与えたダメージの5%」 */
+    if(currentEnemy.number===200 && Math.random()<0.015){
+        const reflected=Math.max(1,Math.floor(damage*0.05));
+        currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
+        gameData.monsterHP=currentEnemy.hp;
+        showDamage(reflected);
+    }
+
+    if(gameData.playerHP<=0){
+        gameData.playerHP=0;
+        saveGame();
+        showRevenge();
+        return;
+    }
+
+    saveGame();
+    updateUI();
+    startBossTimer();
+}
+
+/* ========================================
+   撃破
+======================================== */
+
+function defeatMonster(){
+    if(defeatedLock)return;
+    defeatedLock=true;
+
+    clearTimeout(bossTimer);
+    bossTimer=null;
+
+    const defeatedNumber=currentEnemy.number;
+
+    /* ゴールド：3 + 5 */
+    gameData.gold+=8;
+
+    /* ボス撃破：ガチャコイン1枚 */
+    if(isBoss(defeatedNumber)){
+        gameData.gachaCoins+=1;
+    }
+
+    /* 戦闘終了時にHP全回復 */
+    gameData.playerHP=gameData.playerMaxHP;
+
+    gameData.monsterNumber=defeatedNumber+1;
+    gameData.chapter=
+        gameData.monsterNumber<=350 ? 1 :
+        gameData.monsterNumber<=500 ? 2 : 3;
+
+    saveGame();
+
+    $("defeat-title").textContent=
+        isBoss(defeatedNumber) ? "👑 ボス撃破！" : "撃破！";
+
+    $("defeat-text").textContent=
+        isBoss(defeatedNumber)
+        ? "ガチャコインを1枚獲得！"
+        : "次のモンスターが現れた！";
+
+    $("defeat").classList.add("show");
+
+    setTimeout(()=>{
+        $("defeat").classList.remove("show");
+
+        const story=STORIES[defeatedNumber];
+
+        if(story && !gameData.storySeen[defeatedNumber]){
+            gameData.storySeen[defeatedNumber]=true;
+            saveGame();
+
+            showStory(story,()=>{
+                defeatedLock=false;
+                createEnemy();
+            });
+        }else{
+            defeatedLock=false;
+            createEnemy();
+        }
+    },900);
+}
+
+/* ========================================
+   リベンジ
+   すべて引き継ぎ
+======================================== */
+
+function showRevenge(){
+    clearTimeout(bossTimer);
+    bossTimer=null;
+
+    $("defeat-title").textContent="💀 全滅！";
+    $("defeat-text").textContent=
+        "すべての進行・装備・ゴールド・ガチャコインを引き継いでリベンジできます。";
+
+    $("defeat").classList.add("show");
+}
 
 $("revenge-button").addEventListener("click",()=>{
-    extraData.playerHP=extraData.playerMaxHP;
-    extraData.revenge=true;
-    saveExtra();
+    gameData.playerHP=gameData.playerMaxHP;
+
+    if(currentEnemy){
+        currentEnemy.hp=currentEnemy.maxHP;
+        gameData.monsterHP=currentEnemy.hp;
+    }
+
     $("defeat").classList.remove("show");
-    updateExtraUI();
+
+    saveGame();
+    updateUI();
+
+    if(currentEnemy?.boss)startBossTimer();
 });
 
-const originalAttack = attack;
-attack = function(){
-    if(extraData.playerHP<=0) return;
-    originalAttack();
-};
+/* ========================================
+   ストーリー
+   5秒ごとに自動で次の文へ
+======================================== */
 
-const originalDefeatMonster = defeatMonster;
-defeatMonster = function(){
-    const defeated=gameData.monsterNumber;
-    if(isBoss(defeated)){
-        extraData.gachaCoins++;
-        extraData.playerHP=extraData.playerMaxHP;
-        saveExtra();
+function showStory(lines,done){
+    clearTimeout(storyTimer);
+
+    $("story-overlay").classList.add("show");
+
+    let index=0;
+
+    $("story-text").textContent=lines[index];
+
+    function next(){
+        clearTimeout(storyTimer);
+
+        index++;
+
+        if(index>=lines.length){
+            $("story-overlay").classList.remove("show");
+            $("story-next").onclick=null;
+
+            if(done)done();
+            return;
+        }
+
+        $("story-text").textContent=lines[index];
+
+        storyTimer=setTimeout(next,5000);
     }
-    originalDefeatMonster();
-    const lines=stories[defeated];
-    if(lines && !extraData.storySeen[defeated]){
-        extraData.storySeen[defeated]=true;
-        saveExtra();
-        setTimeout(()=>{
-            defeat.classList.remove("show");
-            showStory(lines,()=>{});
-        },950);
-    }
-};
 
-loadExtra();
-updateExtraUI();
+    $("story-next").onclick=next;
 
-if(!localStorage.getItem(EXTRA_SAVE_KEY) && stories[0]){
-    setTimeout(()=>{
-        showStory(stories[0],()=>{});
-        extraData.storySeen[0]=true;
-        saveExtra();
-    },300);
+    storyTimer=setTimeout(next,5000);
 }
 
+/* ========================================
+   装備 / バッグ
+======================================== */
+
+function renderEquipment(){
+    const list=$("equip-list");
+
+    list.innerHTML=EQUIPMENT.map(e=>{
+        const owned=gameData.ownedEquipment[e.id]||0;
+        const equipped=gameData.equipped.includes(e.id);
+
+        return `
+        <div class="equip-row ${equipped?"equipped":""}">
+            <b>${e.name}</b>
+            ${equipped?'<span class="badge">装備中</span>':""}
+            <br>
+            <span class="small">
+                ${e.effect}<br>
+                所持：${owned}
+            </span>
+            <br>
+            ${owned
+                ? `<button onclick="toggleEquipment('${e.id}')">
+                    ${equipped?"外す":"装備する"}
+                   </button>`
+                : ""}
+            <div style="clear:both"></div>
+        </div>`;
+    }).join("");
+}
+
+window.toggleEquipment=function(id){
+    const index=gameData.equipped.indexOf(id);
+
+    if(index>=0){
+        gameData.equipped.splice(index,1);
+    }else{
+        if(gameData.equipped.length>=3){
+            alert("装備できるのは3個まで！");
+            return;
+        }
+
+        if(!(gameData.ownedEquipment[id]||0))return;
+
+        gameData.equipped.push(id);
+    }
+
+    saveGame();
+    updateUI();
+};
+
+/* ========================================
+   ガチャ
+======================================== */
+
+function rollGacha(){
+    if(gameData.gachaCoins<1){
+        alert("ガチャコインが足りない！");
+        return;
+    }
+
+    gameData.gachaCoins--;
+
+    let item;
+
+    /* 氷の鎧だけ5%、残り12種を残り95%で均等 */
+    if(Math.random()<0.05){
+        item=EQUIPMENT[0];
+    }else{
+        const rest=EQUIPMENT.slice(1);
+        item=rest[Math.floor(Math.random()*rest.length)];
+    }
+
+    if(gameData.ownedEquipment[item.id]){
+        /* ダブり → コイン1枚 */
+        gameData.gachaCoins++;
+
+        $("gacha-result").innerHTML=
+            `🎯 ${item.name}<br>ダブり！ → 🪙 ガチャコイン1枚に変換`;
+    }else{
+        gameData.ownedEquipment[item.id]=1;
+
+        $("gacha-result").innerHTML=
+            `🎉 ${item.name} GET！<br>${item.effect}`;
+    }
+
+    saveGame();
+    updateUI();
+}
+
+$("gacha-roll").addEventListener("click",rollGacha);
+
+/* ========================================
+   強化
+======================================== */
+
+$("hp-upgrade-buy").addEventListener("click",()=>{
+    if(gameData.gold<gameData.hpUpgradeCost){
+        alert("ゴールドが足りない！");
+        return;
+    }
+
+    gameData.gold-=gameData.hpUpgradeCost;
+    gameData.playerMaxHP+=20;
+    gameData.playerHP=gameData.playerMaxHP;
+    gameData.hpUpgradeCost=Math.floor(gameData.hpUpgradeCost*1.5);
+
+    saveGame();
+    updateUI();
+});
+
+$("attack-upgrade-buy").addEventListener("click",()=>{
+    if(gameData.gold<gameData.upgradeCost){
+        alert("ゴールドが足りない！");
+        return;
+    }
+
+    gameData.gold-=gameData.upgradeCost;
+    gameData.attackPower+=5;
+    gameData.upgradeCost=Math.floor(gameData.upgradeCost*1.5);
+
+    saveGame();
+    updateUI();
+});
+
+/* ========================================
+   モーダル
+======================================== */
+
+function openModal(id){
+    $(id).classList.add("show");
+}
+
+function closeModals(){
+    document.querySelectorAll(".modal").forEach(modal=>{
+        modal.classList.remove("show");
+    });
+}
+
+$("upgrade-button").addEventListener("click",()=>{
+    updateUI();
+    openModal("upgrade-modal");
+});
+
+$("bag-button").addEventListener("click",()=>{
+    updateUI();
+    openModal("bag-modal");
+});
+
+$("shop-button").addEventListener("click",()=>{
+    $("gacha-result").textContent="";
+    openModal("shop-modal");
+});
+
+$("upgrade-close").addEventListener("click",closeModals);
+$("bag-close").addEventListener("click",closeModals);
+$("shop-close").addEventListener("click",closeModals);
+
+/* ========================================
+   起動
+======================================== */
+
+loadGame();
+
+createEnemy();
+
+/* 初回ストーリー */
+if(gameData.monsterNumber===1 && !gameData.storySeen[1]){
+    gameData.storySeen[1]=true;
+    saveGame();
+
+    setTimeout(()=>{
+        showStory(STORIES[1],()=>updateUI());
+    },300);
+}
 </script>
+
 </body>
 </html>
