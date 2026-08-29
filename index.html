@@ -1003,5 +1003,59 @@ if(gameData.monsterNumber===1 && !gameData.storySeen[1]){
 
 </script>
 
+
+<script>
+/* =====================================================
+   最終安全ボタンパッチ
+   既存JSでエラーが起きても、主要メニューだけは開けるようにする
+===================================================== */
+(function(){
+  function ready(){
+    function show(id){
+      var el=document.getElementById(id);
+      if(el) el.classList.add('show');
+    }
+    function hideAll(){
+      document.querySelectorAll('.modal').forEach(function(m){m.classList.remove('show');});
+    }
+
+    var u=document.getElementById('upgrade-button');
+    var b=document.getElementById('bag-button');
+    var sh=document.getElementById('shop-button');
+    var g=document.getElementById('gear-button');
+
+    if(u) u.onclick=function(){
+      hideAll();
+      show('upgrade-modal');
+    };
+    if(b) b.onclick=function(){
+      hideAll();
+      show('bag-modal');
+    };
+    if(sh) sh.onclick=function(){
+      hideAll();
+      show('shop-modal');
+    };
+    if(g) g.onclick=function(){
+      hideAll();
+      show('gear-modal');
+    };
+
+    document.querySelectorAll('.modal').forEach(function(modal){
+      modal.addEventListener('click',function(e){
+        if(e.target===modal) modal.classList.remove('show');
+      });
+    });
+
+    ['upgrade-close','bag-close','shop-close','gear-close','machine-close'].forEach(function(id){
+      var x=document.getElementById(id);
+      if(x) x.onclick=function(){hideAll();};
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ready);
+  else ready();
+})();
+</script>
+
 </body>
 </html>
