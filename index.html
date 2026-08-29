@@ -10,6 +10,20 @@
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 #game{position:fixed;inset:0;width:100%;height:100dvh;min-height:500px;display:flex;flex-direction:column;overflow:hidden;transition:background .4s}
+#story-countdown{
+position:fixed;
+top:calc(10px + env(safe-area-inset-top));
+left:10px;
+z-index:80;
+border-radius:12px;
+padding:9px 12px;
+background:rgba(0,0,0,.55);
+color:#fff;
+font-family:"Keifont",sans-serif;
+font-size:15px;
+box-shadow:0 3px 0 rgba(0,0,0,.3);
+text-shadow:1px 1px 0 rgba(0,0,0,.35);
+}
 #restart-button{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:80;border:0;border-radius:12px;padding:9px 12px;background:rgba(0,0,0,.55);color:#fff;font-family:"Keifont",sans-serif;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.3);touch-action:manipulation}
 #restart-button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
 #enemy-area{width:100%;height:50%;min-height:250px;display:flex;flex-direction:column;align-items:center;padding-top:5vh;flex-shrink:0}
@@ -76,6 +90,8 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 </style>
 </head>
 <body>
+
+<div id="story-countdown">📖 ストーリーまで残り49体</div>
 <div id="game">
 <button id="restart-button" type="button">🔄 1体目から</button>
 <section id="enemy-area">
@@ -400,7 +416,32 @@ function getResistance(type){
    UI
 ======================================== */
 
+function updateStoryCountdown(){
+
+    const current=gameData.monsterNumber;
+    const storyNumbers=Object.keys(STORIES)
+        .map(Number)
+        .filter(n=>n>current)
+        .sort((a,b)=>a-b);
+
+    const next=storyNumbers[0];
+    const element=$("story-countdown");
+
+    if(!element)return;
+
+    if(next===undefined){
+        element.textContent="📖 ストーリー完結";
+        return;
+    }
+
+    const remaining=Math.max(0,next-current);
+
+    element.textContent=
+        `📖 ストーリーまで残り${remaining}体`;
+}
+
 function updateUI(){
+    updateStoryCountdown();
     if(!currentEnemy)return;
 
     const hp=Math.max(0,currentEnemy.hp);
