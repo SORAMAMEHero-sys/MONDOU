@@ -112,7 +112,7 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 
 <div class="modal" id="bag-modal"><div class="modal-box">
 <div class="modal-title">🛡️ 装備</div>
-<div class="small">装備は最大3個。同じ装備は複数装備できません。</div>
+<div class="small">装備は最大3個。同じ装備は複数装備できません。売却すると🪙1枚。</div>
 <div id="equip-list"></div>
 <button class="modal-button" id="bag-close">閉じる</button>
 </div></div>
@@ -281,8 +281,13 @@ function loadGame(){
 ======================================== */
 
 function normalHP(n){
-    /* HPは伸ばすが、攻撃力ほど極端にはしない */
-    return Math.floor(30*Math.pow(1.12,n-1));
+    /* インフレ方針C：1〜100体目はゆるやか、101〜200体目で加速 */
+    if(n<=100){
+        return Math.floor(30*Math.pow(1.035,n-1));
+    }
+
+    const hp100=30*Math.pow(1.035,99);
+    return Math.floor(hp100*Math.pow(1.085,n-100));
 }
 
 function normalAttack(n){
@@ -654,16 +659,12 @@ function renderEquipment(){
             <b>${e.name}</b>
             ${equipped?'<span class="badge">装備中</span>':""}
             <br>
-            <span class="small">
-                ${e.effect}<br>
-                所持：${owned}
-            </span>
+            <span class="small">${e.effect}<br>所持：${owned}</span>
             <br>
-            ${owned
-                ? `<button onclick="toggleEquipment('${e.id}')">
-                    ${equipped?"外す":"装備する"}
-                   </button>`
-                : ""}
+            ${owned ? `
+                <button onclick="toggleEquipment('${e.id}')">${equipped?"外す":"装備する"}</button>
+                <button onclick="sellEquipment('${e.id}')" style="margin-right:6px;">売却 🪙</button>
+            ` : ""}
             <div style="clear:both"></div>
         </div>`;
     }).join("");
@@ -684,6 +685,23 @@ window.toggleEquipment=function(id){
 
         gameData.equipped.push(id);
     }
+
+    saveGame();
+    updateUI();
+};
+
+window.sellEquipment=function(id){
+    const count=gameData.ownedEquipment[id]||0;
+    if(count<=0)return;
+
+    const equippedIndex=gameData.equipped.indexOf(id);
+    if(equippedIndex>=0){
+        gameData.equipped.splice(equippedIndex,1);
+    }
+
+    gameData.ownedEquipment[id]=count-1;
+    if(gameData.ownedEquipment[id]<=0) delete gameData.ownedEquipment[id];
+    gameData.gachaCoins+=1;
 
     saveGame();
     updateUI();
