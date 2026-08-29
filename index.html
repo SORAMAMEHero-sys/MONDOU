@@ -963,6 +963,44 @@ if(gameData.monsterNumber===1 && !gameData.storySeen[1]){
         showStory(STORIES[1],()=>updateUI());
     },300);
 }
+
+/* ========================================
+   UIボタンの安全な再バインド
+   （一部ブラウザでイベント登録が止まっても動くようにする）
+======================================== */
+(function bindMainButtonsSafely(){
+    const upgradeBtn=document.getElementById("upgrade-button");
+    const bagBtn=document.getElementById("bag-button");
+    const shopBtn=document.getElementById("shop-button");
+    const gearBtn=document.getElementById("gear-button");
+
+    if(upgradeBtn) upgradeBtn.onclick=function(e){
+        e.preventDefault();
+        try{ updateUI(); }catch(_){ }
+        document.getElementById("upgrade-modal")?.classList.add("show");
+    };
+
+    if(bagBtn) bagBtn.onclick=function(e){
+        e.preventDefault();
+        try{ updateUI(); }catch(_){ }
+        try{ renderEquipment(); }catch(_){ }
+        document.getElementById("bag-modal")?.classList.add("show");
+    };
+
+    if(shopBtn) shopBtn.onclick=function(e){
+        e.preventDefault();
+        const r=document.getElementById("gacha-result");
+        if(r) r.textContent="";
+        document.getElementById("shop-modal")?.classList.add("show");
+    };
+
+    if(gearBtn) gearBtn.onclick=function(e){
+        e.preventDefault();
+        try{ renderGears(); }catch(_){ }
+        document.getElementById("gear-modal")?.classList.add("show");
+    };
+})();
+
 </script>
 
 </body>
