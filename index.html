@@ -10,6 +10,8 @@
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 #game{position:fixed;inset:0;width:100%;height:100dvh;min-height:500px;display:flex;flex-direction:column;overflow:hidden;transition:background .4s}
+#restart-button{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:80;border:0;border-radius:12px;padding:9px 12px;background:rgba(0,0,0,.55);color:#fff;font-family:"Keifont",sans-serif;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.3);touch-action:manipulation}
+#restart-button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
 #enemy-area{width:100%;height:50%;min-height:250px;display:flex;flex-direction:column;align-items:center;padding-top:5vh;flex-shrink:0}
 #hp-box{width:min(80%,500px);text-align:center}
 #hp-text{font-size:clamp(22px,6vw,36px);text-shadow:2px 2px 0 rgba(0,0,0,.4)}
@@ -75,6 +77,7 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 </head>
 <body>
 <div id="game">
+<button id="restart-button" type="button">🔄 1体目から</button>
 <section id="enemy-area">
 <div id="hp-box">
 <div id="enemy-name">魔物 1</div>
@@ -212,8 +215,8 @@ const SAVE_KEY = "mondou_save";
 const gameData = {
     chapter:1,
     monsterNumber:1,
-    monsterHP:30,
-    monsterMaxHP:30,
+    monsterHP:6000,
+    monsterMaxHP:6000,
     attackPower:10,
     gold:0,
     upgradeCost:10,
@@ -281,13 +284,65 @@ function loadGame(){
 ======================================== */
 
 function normalHP(n){
-    /* インフレ方針C：1〜100体目はゆるやか、101〜200体目で加速 */
-    if(n<=100){
-        return Math.floor(30*Math.pow(1.035,n-1));
+
+    /*
+       敵HPのインフレ
+       1体目   : 6,000
+       50体目  : 約30,000
+       100体目 : 約100,000
+       150体目 : 約300,000
+       200体目 : 約1,000,000
+
+       100体目までは緩やか、
+       100〜200体目で加速する。
+    */
+
+    if(n <= 50){
+
+        return Math.floor(
+            6000 *
+            Math.pow(
+                30000 / 6000,
+                (n - 1) / 49
+            )
+        );
+
     }
 
-    const hp100=30*Math.pow(1.035,99);
-    return Math.floor(hp100*Math.pow(1.085,n-100));
+    if(n <= 100){
+
+        return Math.floor(
+            30000 *
+            Math.pow(
+                100000 / 30000,
+                (n - 50) / 50
+            )
+        );
+
+    }
+
+    if(n <= 150){
+
+        return Math.floor(
+            100000 *
+            Math.pow(
+                300000 / 100000,
+                (n - 100) / 50
+            )
+        );
+
+    }
+
+    return Math.floor(
+        300000 *
+        Math.pow(
+            1000000 / 300000,
+            Math.min(
+                1,
+                (n - 150) / 50
+            )
+        )
+    );
 }
 
 function normalAttack(n){
@@ -307,7 +362,9 @@ function createEnemy(){
         emoji:boss?(BOSSES[n]?.emoji||"👑"):["👾","🟢","👺","🐺","🐉"][((n-1)%5)],
         maxHP:boss?baseHP*5:baseHP,
         hp:boss?baseHP*5:baseHP,
-        attack:boss?Math.floor(normalAttack(n)*1.8):normalAttack(n)
+        attack:boss
+            ? ({50:20,100:25,150:30,200:35}[n] || 35)
+            : normalAttack(n)
     };
 
     gameData.monsterMaxHP=currentEnemy.maxHP;
@@ -800,6 +857,39 @@ $("shop-button").addEventListener("click",()=>{
 $("upgrade-close").addEventListener("click",closeModals);
 $("bag-close").addEventListener("click",closeModals);
 $("shop-close").addEventListener("click",closeModals);
+
+/* ========================================
+   1体目からやり直す
+   育成・装備・ゴールド・コイン・ストーリー既読は維持
+======================================== */
+$("restart-button").addEventListener("click",()=>{
+    const ok=confirm("進行度だけを1体目に戻します。\nHP・攻撃力・装備・ゴールド・ガチャコイン・ストーリー既読はそのままです。\n\n1体目からやり直しますか？");
+    if(!ok)return;
+
+    clearTimeout(bossTimer);
+    clearTimeout(statusTimer);
+    clearTimeout(storyTimer);
+    bossTimer=null;
+    statusTimer=null;
+    storyTimer=null;
+    currentStatus="";
+    defeatedLock=false;
+
+    $("defeat").classList.remove("show");
+    $("story-overlay").classList.remove("show");
+    closeModals();
+
+    gameData.monsterNumber=1;
+    gameData.monsterHP=0;
+    gameData.monsterMaxHP=0;
+    gameData.playerHP=gameData.playerMaxHP;
+    gameData.chapter=1;
+
+    saveGame();
+    createEnemy();
+
+    /* 既読ストーリーは維持するため、開始ストーリーは再表示しない */
+});
 
 /* ========================================
    起動
