@@ -544,34 +544,21 @@ function defeatMonster(){
 
     saveGame();
 
-    $("defeat-title").textContent=
-        isBoss(defeatedNumber) ? "👑 ボス撃破！" : "撃破！";
+    /* 敵撃破ではリベンジ画面を表示しない */
+    const story=STORIES[defeatedNumber];
 
-    $("defeat-text").textContent=
-        isBoss(defeatedNumber)
-        ? "ガチャコインを1枚獲得！"
-        : "次のモンスターが現れた！";
+    if(story && !gameData.storySeen[defeatedNumber]){
+        gameData.storySeen[defeatedNumber]=true;
+        saveGame();
 
-    $("defeat").classList.add("show");
-
-    setTimeout(()=>{
-        $("defeat").classList.remove("show");
-
-        const story=STORIES[defeatedNumber];
-
-        if(story && !gameData.storySeen[defeatedNumber]){
-            gameData.storySeen[defeatedNumber]=true;
-            saveGame();
-
-            showStory(story,()=>{
-                defeatedLock=false;
-                createEnemy();
-            });
-        }else{
+        showStory(story,()=>{
             defeatedLock=false;
             createEnemy();
-        }
-    },900);
+        });
+    }else{
+        defeatedLock=false;
+        createEnemy();
+    }
 }
 
 /* ========================================
