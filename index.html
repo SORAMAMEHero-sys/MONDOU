@@ -358,9 +358,9 @@ function normalHP(n){
     if(n <= 50){
 
         return Math.floor(
-            100 *
+            25 *
             Math.pow(
-                2000 / 100,
+                500 / 25,
                 (n - 1) / 49
             )
         );
@@ -370,9 +370,9 @@ function normalHP(n){
     if(n <= 100){
 
         return Math.floor(
-            2000 *
+            500 *
             Math.pow(
-                10000 / 2000,
+                2500 / 500,
                 (n - 50) / 50
             )
         );
@@ -382,9 +382,9 @@ function normalHP(n){
     if(n <= 150){
 
         return Math.floor(
-            10000 *
+            2500 *
             Math.pow(
-                30000 / 10000,
+                7500 / 2500,
                 (n - 100) / 50
             )
         );
@@ -392,9 +392,9 @@ function normalHP(n){
     }
 
     return Math.floor(
-        30000 *
+        7500 *
         Math.pow(
-            100000 / 30000,
+            25000 / 7500,
             Math.min(
                 1,
                 (n - 150) / 50
@@ -405,7 +405,7 @@ function normalHP(n){
 
 function normalAttack(n){
     /* 敵攻撃力は緩やかにインフレ */
-    return Math.floor(5+n*1.25);
+    return Math.max(1,Math.floor((5+n*1.25)/4));
 }
 
 function createEnemy(){
