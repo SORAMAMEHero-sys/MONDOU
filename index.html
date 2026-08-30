@@ -77,7 +77,7 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 </head>
 <body>
 <div id="game">
-<button id="restart-button" type="button">🔄 1体目から</button>
+<button id="restart-button" type="button">🔄 1体目から</button><button id="delete-data-button" type="button" style="position:fixed;top:calc(52px + env(safe-area-inset-top));right:10px;z-index:80;border:0;border-radius:12px;padding:8px 10px;background:rgba(120,0,0,.65);color:#fff">🗑️ データ削除</button>
 <section id="enemy-area">
 <div id="hp-box">
 <div id="enemy-name">魔物 1</div>
@@ -92,15 +92,18 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 </div>
 <div id="enemy">👾</div>
 </section>
+<section id="turret-area" style="text-align:center;padding:4px 10px;min-height:54px">
+<div id="turret-info" style="font-size:14px"></div>
+</section>
 <section id="battle-area"><button id="attack-button" type="button" aria-label="攻撃">⚔️</button></section>
 <section id="bottom-area">
 <div id="status"></div>
-<div id="gold">💰 0 G　🪙 0</div>
-<div style="text-align:center;font-size:14px;opacity:.9;margin-bottom:6px">🛍️ ショップではガチャを回せます</div>
+<div id="gold">💰 0 G　🪙 0　💎 0　🏆 0周</div>
+<div style="text-align:center;font-size:14px;opacity:.9;margin-bottom:6px">👾 <span id="story-progress">ストーリーまで残り 50体</span></div>
 <div id="menu-buttons">
 <button class="menu-button" id="upgrade-button">💪 強化</button>
-<button class="menu-button" id="bag-button">👜 装備</button>
-<button class="menu-button" id="shop-button">🛍️ ショップ</button><button class="menu-button" id="gear-button">⚙️ ギア</button>
+<button class="menu-button" id="bag-button">👜 装備・ギア</button>
+<button class="menu-button" id="shop-button">🛍️ ショップ</button>
 </div>
 </section>
 </div>
@@ -117,20 +120,36 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 <div class="modal-title">🛡️ 装備</div>
 <div class="small">装備は最大3個。同じ装備は複数装備できません。売却すると🪙1枚。</div>
 <div id="equip-list"></div>
+<hr>
+<div class="modal-title" style="font-size:22px">⚙️ ギア</div>
+<div class="small">ギアは1個まで装備可能。装備と別枠です。</div>
+<div id="gear-list"></div>
+<hr>
+<div class="modal-title" style="font-size:22px">🤖 タレット</div>
+<div class="small">タレットは最大3個。自動で攻撃します。</div>
+<div id="turret-list"></div>
 <button class="modal-button" id="bag-close">閉じる</button>
 </div></div>
 
 
 <div class="modal" id="shop-modal"><div class="modal-box">
 <div class="modal-title">🛍️ ショップ</div>
-<div>🎰 装備ガチャ</div>
-<div class="small">1回 = 🪙 ガチャコイン1枚<br>🧊 氷の鎧：5% / その他：残り95%を均等<br>🎁 ガチャコイン：ボス撃破・イベント・ミッション</div>
-<button class="modal-button" id="gacha-roll">🎰 ガチャを回す！</button>
-<div id="gacha-result"></div><hr><b>💎 タレットショップ</b><button class="modal-button" onclick="buyTurret('turret',10)">💎10：タレット（3秒）</button><button class="modal-button" onclick="buyTurret('goldTurret',30)">💎30：金のタレット（1.7秒）</button><button class="modal-button" onclick="buyTurret('diamondTurret',100)">💎100：ダイヤタレット（1秒）</button><button class="modal-button" onclick="buyTurret('vipTurret',500)">💎500：VIPタレット（0.3秒）</button>
+<div>🎰 ギアガチャ</div>
+<div class="small">1回 = 🪙 ガチャコイン3枚<br>勇者補正 3% / 超激レア 1% / 通常ギア 96%<br>ダブってもコインには変換されません。</div>
+<button class="modal-button" id="gacha-roll">🎰 ギアガチャを回す！</button>
+<div id="gacha-result"></div>
+<hr>
+<div style="text-align:left">
+<b>💎 タレット購入</b>
+<div>💎10 → 🤖 タレット（3秒に1回）</div>
+<div>💎30 → 🥇 金のタレット（1.7秒に1回）</div>
+<div>💎100 → 💎 ダイヤタレット（1秒に1回）</div>
+<div>💎500 → 👑 VIPタレット（0.3秒に1回）</div>
+</div>
+<div id="turret-shop"></div>
 <button class="modal-button" id="shop-close">閉じる</button>
 </div></div>
 
-<div class="modal" id="gear-modal"><div class="modal-box"><div class="modal-title">⚙️ ギア</div><div class="small">ギアは1個まで装備できます。ダブりは残り、アップグレードや合成マシンに使えます。</div><div id="gear-list"></div><button class="modal-button" id="gear-gacha-roll">🎰 ギアガチャ（🪙3枚）</button><div id="gear-gacha-result"></div><button class="modal-button" id="machine-open">🏭 合成マシン</button><button class="modal-button" id="gear-close">閉じる</button></div></div><div class="modal" id="machine-modal"><div class="modal-box"><div class="modal-title">🏭 合成マシン</div><div class="small">最大3個投入　通常3pt / 勇者補正5pt / 超激レア15pt</div><div id="machine-select-list"></div><div id="machine-slots"></div><div id="machine-points">合計ポイント：0</div><div id="machine-result"></div><button class="modal-button" id="machine-run">🏭 合成する</button><button class="modal-button" id="machine-close">戻る</button></div></div>
 <div id="story-overlay"><div id="story-box">
 <div id="story-title">ストーリー</div>
 <div id="story-text"></div>
@@ -149,62 +168,89 @@ body{font-family:"Keifont",sans-serif;background:#87ceeb;color:#fff}
 ======================================== */
 
 const EQUIPMENT = [
-    {id:"iceArmor",name:"🧊 氷の鎧",effect:"凍結耐性・中 / 攻撃力×1.7",attack:1.7,resist:{freeze:0.5}},
-    {id:"fireArmor",name:"🔥 炎熱の鎧",effect:"火傷耐性・中 / 攻撃力×1.7",attack:1.7,resist:{burn:0.5}},
-    {id:"thunderCharm",name:"⚡ 雷鳴の護符",effect:"麻痺耐性・中 / 攻撃力×1.7",attack:1.7,resist:{paralyze:0.5}},
-    {id:"poisonRing",name:"☠️ 毒消しの指輪",effect:"毒耐性・中 / 攻撃力×1.7",attack:1.7,resist:{poison:0.5}},
-    {id:"darkGlasses",name:"🌑 闇夜の眼鏡",effect:"暗闇耐性・中 / 攻撃力×1.7",attack:1.7,resist:{dark:0.5}},
-    {id:"curseNecklace",name:"💀 呪い返しの首飾り",effect:"呪い耐性・中 / 攻撃力×1.7",attack:1.7,resist:{curse:0.5}},
-    {id:"holyBandage",name:"💔 聖なる包帯",effect:"回復阻害耐性・中 / 攻撃力×1.7",attack:1.7,resist:{healBlock:0.5}},
-    {id:"lightShoes",name:"🌀 軽身の靴",effect:"鈍化耐性・中 / 攻撃力×1.7",attack:1.7,resist:{slow:0.5}},
-    {id:"heater",name:"装備式ヒーター",effect:"氷耐性(大) / 攻撃力×1.1",attack:1.1,resist:{freeze:0.8}},
-    {id:"guardianArmor",name:"🛡️ 守護の鎧",effect:"全妨害耐性(小) / 攻撃力×1.0",attack:1.0,allResist:0.2},
-    {id:"jetShoes",name:"👟 ジェットシューズ",effect:"鈍化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{slow:0.8}},
-    {id:"brainTrainer",name:"🧠 脳トレソフト",effect:"混乱耐性(大) / 攻撃力×1.1",attack:1.1,resist:{confuse:0.8}},
-    {id:"okayU",name:"🍚 おかゆ",effect:"弱体化耐性(大) / 攻撃力×1.1",attack:1.1,resist:{weaken:0.8}}
+    {id:"bandage",name:"🩹 絆創膏",effect:"3秒ごとに最大HPの3%回復",attack:1},
+    {id:"lightGlasses",name:"💡 ライトメガネ",effect:"暗闇無効",attack:1},
+    {id:"barrier",name:"🛡️ バリア",effect:"15%で攻撃を無効化",attack:1},
+    {id:"timeSlow",name:"⏳ タイムスロー",effect:"敵の攻撃までの時間+100%",attack:1},
+    {id:"otherReliance",name:"🙏 他力本願",effect:"タレット攻撃力×1.5 / タッチダメージ×0.1",attack:0.1,turret:1.5},
+    {id:"selfReliance",name:"💪 自力本願",effect:"タレット攻撃力×0.1 / タッチダメージ×1.5",attack:1.5,turret:0.1},
+    {id:"heroCorrection",name:"🌟 勇者補正",effect:"全ステータス×1.2 / 封印・即死無効",attack:1.2,rare:true},
+    {id:"critical",name:"💥 クリティカル",effect:"攻撃時10%で2倍（タレット除外）",attack:1},
+    {id:"superCritical",name:"💥 超クリティカル",effect:"攻撃時5%で3倍（タレット除外）",attack:1},
+    {id:"beastAssault",name:"🐗 野獣の猛攻",effect:"タレット攻撃間隔×1.5 / タレット火力×2.3",attack:1,turret:2.3,interval:1.5,superRare:true},
+    {id:"regeneration",name:"❤️ 再生能力",effect:"10秒ごとに最大HPの10%回復",attack:1,superRare:true},
+    {id:"familyCircumstances",name:"🏠 家庭の事情",effect:"毒・火傷・感電無効",attack:1,superRare:true},
+    {id:"saviorInstinct",name:"😇 救世主の勘",effect:"攻撃を70%で回避",attack:1,superRare:true}
 ];
 
-/* ========================================
-   ボス（50体ごと）
-======================================== */
-
-const BOSSES = {
-    50:{name:"ハツボ=ス",emoji:"👑"},
-    100:{name:"ボマアス",emoji:"💣"},
-    150:{name:"ハントザ",emoji:"🧊",special:"攻撃時10%で氷状態(2秒)"},
-    200:{name:"バト=ル",emoji:"💥",special:"攻撃時1.5%で反射"}
-};
-
-function isBoss(n){
-    return n % 50 === 0;
+const BOSSES = {};
+for(let i=10;i<=1000;i+=10){
+    BOSSES[i]={
+        name:i===1000?"終焉のそらまめ":`第${i/10}ボス`,
+        emoji:i===1000?"👑":["👑","💀","🐉","🤖","🔥","❄️","⚡","👿"][((i/10)-1)%8]
+    };
 }
-
-function bossName(n){
-    return BOSSES[n]?.name || `ボス ${n}`;
-}
-
-/* ========================================
-   ストーリー
-   初回は開始時、各登録体数の撃破後
-   1文ずつ5秒間隔
-======================================== */
+function isBoss(n){ return n % 10 === 0; }
+function bossName(n){ return BOSSES[n]?.name || `ボス ${n}`; }
 
 const STORIES = {
-    1:["やあ、君が勇者かい？","ああ、そうみたいだね","僕はそらまめ、魔物さ","おやおや、そうキレるなって","君と戦う気はないんだよ","昼飯を食べてくるから","また後で話そうか😏"],
-    50:["やあ、ハンバーグ弁当美味しかったよ","話を戻そう、僕は魔物だが戦うのは好きではない","なぜかって？それは秘密だ","モンスター退治を頑張ってるね","いつもモンスター退治ありがとうね","え？何故仲間を退治させるかって？","仲間じゃないからさ"],
-    100:["100体も倒したのか、なかなかやるね","え？仲間じゃないってどうゆうことだって？","まあまあ、それは秘密だって言わなかったかい😏","まあ君は知る必要のないことだけどね","次のボスを倒したら","大事な話をしよう","君の運命を変えるものかもしれないな😎"],
-    150:["やあ","大事な話をしよう","魔物って言うのは君たちの事に例えると","ゴキブリって生物だね","直接的な悪さは働かないが、卵を産んで、増え続けるんだ","悪さをしていないのになぜ人間は殺そうとするんだい？","まあ君はゴキブリ退治をしているような立場さ","魔物からすると殺し屋みたいなものだ","ん？僕はどんな生き物だって？","マダラシミだよ😏"],
-    200:["僕の最近のマイブームは","人間の家でかくれんぼするのがマイブームさ","スリルたっぷりで楽しいだろう？"],
-    250:["こんにちは","私はえだまめ","いつもそらまめがお世話になってるね","え？私は誰だって？","私はそらまめの友達よ","とゆうより、そらまめの同居人","そらまめと同じ家で過ごしてるわ","モンスター退治がんばってね"],
-    300:["やあ","そらまめだよ","そいえばここはどこだろうね","世界の端っこに触れたら死にかけたよ","どうしてこの世界には端っこがあるんだろうね"],
-    350:["僕そらまめだよ","世界の端っこの向こう側に","人影が見えたんだ","世界の裏側ってやつかな？","行ってみるかい？","おーけー、いこう"],
-    400:["モンスター退治は順調かい？","世界の端までまだまだだよ","この先にはシーカイ町がある","この先は海だから、ボートがないといけないね","確かシーカイ町にはボートがあるはず","シーカイ町へLET'S GO!!"],
-    450:["ここがシーカイ町さ","ボート持ってきたよ、これで行こう","ん？金もないのにどうやって？だって？","それは知らなくてもいい話だよ😈","まあ海を渡り、世界の端っこまで行こうか😎"],
-    475:["あと少しで世界の端っこさ","ここまで5時間の長い旅だったね","このまま進もうか","ん？なんだって？","お腹空いた？だって？","僕のハンバーグ弁当あげるよ","今度ハンバーグ弁当奢ってよね"],
-    500:["ここが世界の端っこ","このバリアを破壊すれば進めるね","もう破壊するね","よし壊れた、先へ進もう"],
-    525:["ここはドメイン地方らしいね","どうやらこの世界は2つの世界に別れているらしい","さっき居たのが西地方、今いるのが東地方","コンビニに...あ、あ、","ハンバーグ弁当が..ないんだが","西世界限定販売ってやつか","代わりにWlバーガーを食べるとするか"],
-    550:["WLバーガーには熊肉が入っているのか、癖が強くて苦手だ","そんなことより、いやハンバーグ弁当の方が大事だが","魔物は、悪い奴だけではないんだ","前に他の魔物にハンバーグ弁当買ってもらったよ","とても美味しかった、特にマヨネーズがね","あと回転寿司のハンバーグ寿司も好きだ、110円って安くないか？","まあ良い魔物は人を襲ったりなんてしないから、戦うことはないだろうが"],
-    600:["この先は凶悪な魔物の住処だ","人を殺して逮捕されたが脱獄したようなやつらだ","ぜひそんなクズどもは殺してくれ","人も襲うゴキブリなんて世界の終わりだろう？"]
+    1:[
+        "やあ、僕はそらまめ",
+        "君は勇者だね？",
+        "僕は魔物のそらまめ、魔物だけど君に敵対してるわけじゃない",
+        "おや？僕を倒す気か？",
+        "まてまて、今の君じゃ勝てないよ",
+        "とりあえず、僕はコンビニに行くから",
+        "50体モンスターを倒したらまた来るよ"
+    ],
+    50:[
+        "やあ、約束通り来たよ",
+        "君は今こう思ってるだろうね",
+        "「なんで魔物が襲わない？」と",
+        "僕は普通の魔物じゃない",
+        "さらに上の存在だよ(笑)"
+    ],
+    100:[
+        "君は100の魔物を倒したね",
+        "あとこの世界の魔物は900体だ",
+        "君みたいなドパガキにはきついかもね",
+        "まあせいぜい頑張ってくれ",
+        "そうそう遠い所に旅行行くから",
+        "200体倒したぐらいにまたくるよ"
+    ],
+    150:[
+        "やあ、俺はえだまめだ",
+        "まあそらまめのダチだ",
+        "そらまめに旅行置いてかれて悲しいよ",
+        "まあ魔物退治頑張ってね",
+        "あと君にプレゼントあげるよ"
+    ],
+    200:[
+        "やあ、そらまめだよ",
+        "1番大事な物はなんだと思う？",
+        "素人はこう言うだろう",
+        "金！金！金！富名声力ァ！",
+        "それは甘すぎるね",
+        "大事なのは「種族」さ",
+        "人間>魔物>家畜",
+        "これは有名だよね、だけど",
+        "この世界では違うのだよ",
+        "魔物<<<<<人間",
+        "魔物は家畜以下なのだよ",
+        "魔物は昔から差別されてきた",
+        "昔、魔物は惨殺されてきたんだ",
+        "残酷に...ね",
+        "魔物と人間、どっちが悪なのかな😏"
+    ],
+    350:[
+        "やあ、えだまめだよ",
+        "覚えてくれてるかな🙃",
+        "お前にいいことを教えるわ",
+        "今のお前じゃ全部の魔物を倒せない",
+        "ギアを知ってるかい？",
+        "とても強力なアイテムさ",
+        "ギア用に、プレゼントを上げよう"
+    ]
 };
 
 /* ========================================
@@ -227,15 +273,13 @@ const gameData = {
     hpUpgradeCost:10,
 
     gachaCoins:0,
-    ownedEquipment:{},
-    equipmentStars:{},
-    equipped:[],
-    gears:{},
-    gearStars:{},
-    equippedGear:null,
     diamonds:0,
-    turrets:{},
-    equippedTurrets:[],
+    clearCount:0,
+    ownedEquipment:{},
+    equipped:[],
+    ownedGear:{},
+    equippedGear:null,
+    turrets:{basic:1,gold:0,diamond:0,vip:0},
     storySeen:{}
 };
 
@@ -276,11 +320,16 @@ function loadGame(){
 
         if(!Array.isArray(gameData.equipped))gameData.equipped=[];
         if(!gameData.ownedEquipment || typeof gameData.ownedEquipment!=="object")gameData.ownedEquipment={};
+        if(!gameData.ownedGear || typeof gameData.ownedGear!=="object")gameData.ownedGear={};
+        if(!gameData.turrets || typeof gameData.turrets!=="object")gameData.turrets={basic:1,gold:0,diamond:0,vip:0};
+        if(gameData.turrets.basic == null)gameData.turrets.basic=1;
+        if(gameData.turrets.gold == null)gameData.turrets.gold=0;
+        if(gameData.turrets.diamond == null)gameData.turrets.diamond=0;
+        if(gameData.turrets.vip == null)gameData.turrets.vip=0;
         if(!gameData.storySeen || typeof gameData.storySeen!=="object")gameData.storySeen={};
-        if(!gameData.gears || typeof gameData.gears!=="object")gameData.gears={};
-        if(!gameData.gearStars || typeof gameData.gearStars!=="object")gameData.gearStars={};
-        if(!gameData.turrets || typeof gameData.turrets!=="object")gameData.turrets={};
         gameData.diamonds=Math.max(0,Number(gameData.diamonds)||0);
+        gameData.clearCount=Math.max(0,Number(gameData.clearCount)||0);
+        if(gameData.equippedGear===undefined)gameData.equippedGear=null;
 
         gameData.monsterNumber=Math.max(1,Number(gameData.monsterNumber)||1);
         gameData.playerMaxHP=Math.max(1,Number(gameData.playerMaxHP)||100);
@@ -360,6 +409,7 @@ function normalAttack(n){
 }
 
 function createEnemy(){
+    clearTurretTimers();
     const n=gameData.monsterNumber;
     const boss=isBoss(n);
     const baseHP=normalHP(n);
@@ -372,7 +422,7 @@ function createEnemy(){
         maxHP:boss?baseHP*5:baseHP,
         hp:boss?baseHP*5:baseHP,
         attack:boss
-            ? ({50:20,100:25,150:30,200:35}[n] || 35)
+            ? Math.floor(normalAttack(n)*2.2)
             : normalAttack(n)
     };
 
@@ -382,17 +432,64 @@ function createEnemy(){
     updateUI();
 
     if(boss)startBossTimer();
+    startTurrets();
+    renderTurrets();
+    renderTurretShop();
+}
+
+const GEAR = [
+    {id:"timeSlow",name:"⏳ タイムスロー",effect:"敵の攻撃までの時間+100%",type:"normal"},
+    {id:"barrier",name:"🛡️ バリア",effect:"攻撃を15%で無効化",type:"normal"},
+    {id:"lightGlasses",name:"💡 ライトメガネ",effect:"暗闇無効",type:"normal"},
+    {id:"otherReliance",name:"🙏 他力本願",effect:"タレット火力×1.5 / タップ火力×0.1",type:"normal",turret:1.5,attack:0.1},
+    {id:"selfReliance",name:"💪 自力本願",effect:"タレット火力×0.1 / タップ火力×1.5",type:"normal",turret:0.1,attack:1.5},
+    {id:"heroCorrection",name:"🌟 勇者補正",effect:"全ステータス×1.2 / 封印・即死無効",type:"hero",attack:1.2},
+    {id:"critical",name:"💥 クリティカル",effect:"攻撃時10%で2倍（タレット除外）",type:"normal"},
+    {id:"superCritical",name:"💥 超クリティカル",effect:"攻撃時5%で3倍（タレット除外）",type:"super"},
+    {id:"beastAssault",name:"🐗 野獣の猛攻",effect:"タレット攻撃間隔×1.5 / 火力×2.3",type:"superRare",turret:2.3,interval:1.5},
+    {id:"regeneration",name:"❤️ 再生能力",effect:"10秒ごとに最大HPの10%回復",type:"superRare"},
+    {id:"familyCircumstances",name:"🏠 家庭の事情",effect:"毒・火傷・感電無効",type:"superRare"},
+    {id:"saviorInstinct",name:"😇 救世主の勘",effect:"攻撃を70%で回避",type:"superRare"}
+];
+const GEAR_BY_ID=Object.fromEntries(GEAR.map(x=>[x.id,x]));
+const GEAR_POOL={
+    normal:GEAR.filter(x=>x.type==="normal"),
+    hero:GEAR.filter(x=>x.type==="hero"),
+    superRare:GEAR.filter(x=>x.type==="superRare")
+};
+function gearRoll(){
+    const r=Math.random()*100;
+    if(r<1){
+        return GEAR_POOL.superRare[Math.floor(Math.random()*GEAR_POOL.superRare.length)];
+    }
+    if(r<4) return GEAR_BY_ID.heroCorrection;
+    return GEAR_POOL.normal[Math.floor(Math.random()*GEAR_POOL.normal.length)];
+}
+function getGearPoints(id){
+    const g=GEAR_BY_ID[id];
+    if(!g)return 0;
+    if(g.type==="hero")return 5;
+    if(g.type==="superRare")return 15;
+    return 3;
+}
+function getAllGearPoint(ids){
+    return ids.reduce((s,id)=>s+getGearPoints(id),0);
 }
 
 /* ========================================
    装備効果
 ======================================== */
 
+function getGear(id){ return GEAR.find(x=>x.id===id); }
+
 function getAttackMultiplier(){
-    return gameData.equipped.reduce((mult,id)=>{
+    let mult=gameData.equipped.reduce((m,id)=>{
         const e=EQUIPMENT.find(x=>x.id===id);
-        return mult*(e?e.attack:1);
+        return m*(e?.attack||1);
     },1);
+    const g=gameData.equippedGear ? getGear(gameData.equippedGear) : null;
+    if(g?.attack) mult*=g.attack;
+    return mult;
 }
 
 function getResistance(type){
@@ -428,7 +525,9 @@ function updateUI(){
     $("enemy").textContent=currentEnemy.emoji;
     $("enemy").classList.toggle("boss",currentEnemy.boss);
 
-    $("gold").textContent=`💰 ${formatNumber(gameData.gold)} G　🪙 ${gameData.gachaCoins}　💎 ${gameData.diamonds}`;
+    $("gold").textContent=`💰 ${formatNumber(gameData.gold)} G　🪙 ${gameData.gachaCoins}　💎 ${gameData.diamonds}　🏆 ${gameData.clearCount}周`;
+    const nextStory = Object.keys(STORIES).map(Number).filter(x=>x>gameData.monsterNumber).sort((a,b)=>a-b)[0];
+    $("story-progress").textContent = nextStory ? `ストーリーまで残り ${Math.max(0,nextStory-gameData.monsterNumber+1)}体` : "ストーリー：次の章へ";
 
     $("upgrade-info").innerHTML=
         `⚔️ 攻撃力：${formatNumber(gameData.attackPower*getAttackMultiplier())}<br>`+
@@ -468,6 +567,79 @@ function formatNumber(n){
     return `${Math.floor(x*10)/10}${units[i]}`;
 }
 
+
+/* ========================================
+   タレット
+======================================== */
+const TURRETS = {
+    basic:{name:"🤖 タレット",cost:10,interval:3000,damage:8},
+    gold:{name:"🥇 金のタレット",cost:30,interval:1700,damage:25},
+    diamond:{name:"💎 ダイヤタレット",cost:100,interval:1000,damage:70},
+    vip:{name:"👑 VIPタレット",cost:500,interval:300,damage:250}
+};
+let turretTimers={};
+
+function getTurretMultiplier(){
+    let m=1;
+    for(const id of gameData.equipped){
+        const e=EQUIPMENT.find(x=>x.id===id);
+        if(e?.turret)m*=e.turret;
+    }
+    const g=gameData.equippedGear ? getGear(gameData.equippedGear) : null;
+    if(g?.turret)m*=g.turret;
+    return m;
+}
+function getTurretIntervalMultiplier(){
+    let m=1;
+    for(const id of gameData.equipped){
+        const e=EQUIPMENT.find(x=>x.id===id);
+        if(e?.interval)m*=e.interval;
+    }
+    return m;
+}
+function clearTurretTimers(){
+    Object.values(turretTimers).forEach(clearInterval);
+    turretTimers={};
+}
+function startTurrets(){
+    clearTurretTimers();
+    for(const [id,count] of Object.entries(gameData.turrets)){
+        if(!count || !TURRETS[id])continue;
+        const t=TURRETS[id];
+        turretTimers[id]=setInterval(()=>{
+            if(!currentEnemy || currentEnemy.hp<=0 || defeatedLock)return;
+            let damage=Math.max(1,Math.floor(t.damage*getTurretMultiplier()));
+            currentEnemy.hp=Math.max(0,currentEnemy.hp-damage);
+            gameData.monsterHP=currentEnemy.hp;
+            showDamage(damage);
+            if(currentEnemy.hp<=0) defeatMonster();
+            else { saveGame(); updateUI(); }
+        },Math.max(100,Math.floor(t.interval*getTurretIntervalMultiplier())));
+    }
+}
+function renderTurrets(){
+    const total=Object.values(gameData.turrets).reduce((a,b)=>a+(Number(b)||0),0);
+    $("turret-info").textContent=`🤖 タレット ${total}/3`;
+}
+function buyTurret(id){
+    const t=TURRETS[id];
+    if(!t)return;
+    const total=Object.values(gameData.turrets).reduce((a,b)=>a+(Number(b)||0),0);
+    if(total>=3){ alert("タレットは3個まで！"); return; }
+    if(gameData.diamonds<t.cost){ alert("💎が足りない！"); return; }
+    gameData.diamonds-=t.cost;
+    gameData.turrets[id]=(gameData.turrets[id]||0)+1;
+    saveGame(); renderEquipment(); updateUI(); startTurrets(); renderTurretShop();
+}
+function renderTurretShop(){
+    const el=$("turret-shop");
+    if(!el)return;
+    el.innerHTML=Object.entries(TURRETS).map(([id,t])=>
+        `<button class="modal-button" onclick="buyTurret('${id}')">${t.name}　💎${t.cost}　購入</button>`
+    ).join("");
+}
+window.buyTurret=buyTurret;
+
 /* ========================================
    攻撃
 ======================================== */
@@ -481,7 +653,10 @@ function attack(){
         return;
     }
 
-    const damage=Math.max(1,Math.floor(gameData.attackPower*getAttackMultiplier()));
+    let damage=Math.max(1,Math.floor(gameData.attackPower*getAttackMultiplier()));
+    const g=gameData.equippedGear ? getGear(gameData.equippedGear) : null;
+    if(g?.id==="critical" && Math.random()<0.10) damage*=2;
+    if(g?.id==="superCritical" && Math.random()<0.05) damage*=3;
 
     currentEnemy.hp=Math.max(0,currentEnemy.hp-damage);
     gameData.monsterHP=currentEnemy.hp;
@@ -519,52 +694,85 @@ function showDamage(damage){
     setTimeout(()=>el.remove(),800);
 }
 
+let bandageTimer=setInterval(()=>{
+    if(gameData.equipped.includes("bandage") && gameData.playerHP>0){
+        gameData.playerHP=Math.min(gameData.playerMaxHP,gameData.playerHP+Math.max(1,Math.floor(gameData.playerMaxHP*0.03)));
+        saveGame(); updateUI();
+    }
+},3000);
+let regenerationTimer=setInterval(()=>{
+    if(gameData.equippedGear==="regeneration" && gameData.playerHP>0){
+        gameData.playerHP=Math.min(gameData.playerMaxHP,gameData.playerHP+Math.max(1,Math.floor(gameData.playerMaxHP*0.10)));
+        saveGame(); updateUI();
+    }
+},10000);
+
 /* ========================================
    ボス攻撃
 ======================================== */
 
 function startBossTimer(){
     clearTimeout(bossTimer);
-    bossTimer=null;
 
-    if(!currentEnemy || !currentEnemy.boss)return;
-    if(Number(currentEnemy.hp)<=0)return;
-    if(Number(gameData.playerHP)<=0)return;
+    if(!currentEnemy?.boss)return;
 
-    const interval=(gameData.equippedGear==="timeSlow") ? 6000 : 3000;
-
+    let delay=3000;
+    if(gameData.equipped.includes("timeSlow") || gameData.equippedGear==="timeSlow") delay*=2;
     bossTimer=setTimeout(()=>{
         bossTimer=null;
-        if(!currentEnemy || !currentEnemy.boss)return;
-        if(Number(currentEnemy.hp)<=0)return;
-        if(Number(gameData.playerHP)<=0)return;
-
         bossAttack();
-    },interval);
+    },delay);
 }
 
 function bossAttack(){
-    if(!currentEnemy || !currentEnemy.boss)return;
-    if(Number(currentEnemy.hp)<=0)return;
-    if(Number(gameData.playerHP)<=0)return;
+    if(!currentEnemy?.boss || currentEnemy.hp<=0)return;
 
-    const damage=Math.max(1,Math.floor(Number(currentEnemy.attack)||1));
+    if(Math.random()<0.70 && gameData.equippedGear==="saviorInstinct"){
+        currentStatus="😇 救世主の勘！ 攻撃回避！";
+        saveGame(); updateUI(); startBossTimer(); return;
+    }
+    if(gameData.equipped.includes("barrier") && Math.random()<0.15){
+        currentStatus="🛡️ バリア！ 攻撃無効！";
+        saveGame(); updateUI(); startBossTimer(); return;
+    }
+    const damage=currentEnemy.attack;
+    gameData.playerHP=Math.max(0,gameData.playerHP-damage);
 
-    if(gameData.equippedGear==="barrier" && Math.random()<0.15){
-        showBossMessage("🛡️ バリア！ 攻撃を無効化！");
-    }else{
-        gameData.playerHP=Math.max(0,Number(gameData.playerHP)-damage);
-        showBossMessage(`💥 ${currentEnemy.name||"ボス"}の攻撃！ -${damage}`);
+    /* 150体目：10%で氷状態 */
+    if(currentEnemy.number===150 && Math.random()<0.10){
+        const resistance=getResistance("freeze");
+        const duration=2000*(1-resistance);
+
+        if(duration>0){
+            clearTimeout(statusTimer);
+            currentStatus=`🧊 氷状態！ ${Math.ceil(duration/100)/10}秒 攻撃不能`;
+
+            statusTimer=setTimeout(()=>{
+                currentStatus="";
+                statusTimer=null;
+                updateUI();
+            },duration);
+        }
     }
 
-    saveGame();
-    updateUI();
+    /* 200体目：1.5%で反射
+       反射量は「与えたダメージの5%」 */
+    if(currentEnemy.number===200 && Math.random()<0.015){
+        const reflected=Math.max(1,Math.floor(damage*0.05));
+        currentEnemy.hp=Math.max(0,currentEnemy.hp-reflected);
+        gameData.monsterHP=currentEnemy.hp;
+        showDamage(reflected);
+    }
 
-    if(Number(gameData.playerHP)<=0){
+    if(gameData.playerHP<=0){
+        gameData.playerHP=0;
+        saveGame();
         showRevenge();
         return;
     }
 
+    saveGame();
+    updateUI();
     startBossTimer();
 }
 
@@ -584,7 +792,6 @@ function defeatMonster(){
     /* ゴールド：3 + 5 */
     gameData.gold+=8;
 
-    if(Math.random()<0.01)gameData.diamonds+=1;
     /* ボス撃破：ガチャコイン1枚 */
     if(isBoss(defeatedNumber)){
         gameData.gachaCoins+=1;
@@ -593,10 +800,33 @@ function defeatMonster(){
     /* 戦闘終了時にHP全回復 */
     gameData.playerHP=gameData.playerMaxHP;
 
+    /* 敵撃破で1%の💎 */
+    if(Math.random()<0.01) gameData.diamonds+=1;
+
+    /* ストーリー報酬 */
+    if(defeatedNumber===150) gameData.diamonds+=15;
+    if(defeatedNumber===350) gameData.gachaCoins+=6;
+
+    if(defeatedNumber===1000){
+        gameData.clearCount+=1;
+        gameData.monsterNumber=1;
+        gameData.monsterHP=0;
+        gameData.monsterMaxHP=0;
+        gameData.chapter=1;
+        gameData.playerHP=gameData.playerMaxHP;
+        /* 周回しても所持品・強化・通貨・ギア等は全保持 */
+        saveGame();
+        defeatedLock=false;
+        createEnemy();
+        if(!gameData.storySeen[1]){
+            gameData.storySeen[1]=true;
+            showStory(STORIES[1],()=>updateUI());
+        }
+        return;
+    }
+
     gameData.monsterNumber=defeatedNumber+1;
-    gameData.chapter=
-        gameData.monsterNumber<=350 ? 1 :
-        gameData.monsterNumber<=500 ? 2 : 3;
+    gameData.chapter=1;
 
     saveGame();
 
@@ -686,137 +916,70 @@ function showStory(lines,done){
     storyTimer=setTimeout(next,5000);
 }
 
-const GEARS=[{id:"timeSlow",name:"⏳ タイムスロー",rarity:"通常ギア",points:3,effect:"敵の攻撃までの時間 +100%"},{id:"barrier",name:"🛡️ バリア",rarity:"通常ギア",points:3,effect:"攻撃を15%で無効化"},{id:"lightGlasses",name:"🕶️ ライトメガネ",rarity:"通常ギア",points:3,effect:"暗闇無効"},{id:"others",name:"🤖 他力本願",rarity:"通常ギア",points:3,effect:"タレット火力×1.5 / タッチ火力×0.1"},{id:"self",name:"👆 自力本願",rarity:"通常ギア",points:3,effect:"タレット火力×0.1 / タッチ火力×1.5"},{id:"bandage",name:"🩹 絆創膏",rarity:"通常ギア",points:3,effect:"3秒ごとに最大HPの3%回復"},{id:"critical",name:"💥 クリティカル",rarity:"通常ギア",points:3,effect:"攻撃時10%で2倍（タレット除外）"},{id:"hero",name:"🦸 勇者補正",rarity:"レア",points:5,effect:"全ステータス×1.2 / 封印・即死無効"},{id:"beast",name:"🐗 野獣の猛攻",rarity:"超激レア",points:15,effect:"タレット攻撃間隔×1.5 / 火力×2.3"},{id:"regen",name:"♻️ 再生能力",rarity:"超激レア",points:15,effect:"10秒ごとに最大HPの10%回復"},{id:"home",name:"🏠 家庭の事情",rarity:"超激レア",points:15,effect:"毒・火傷・感電無効"},{id:"superCritical",name:"💥💥 超クリティカル",rarity:"通常ギア",points:3,effect:"攻撃時5%で3倍（タレット除外）"},{id:"savior",name:"😇 救世主の勘",rarity:"超激レア",points:15,effect:"攻撃を70%の確率で回避"}]; const GEAR_BY_ID=Object.fromEntries(GEARS.map(g=>[g.id,g])); let machineSelected=[]; function renderGears(){const l=$("gear-list"); if(!l)return; const a=Object.entries(gameData.gears||{}).filter(([id,n])=>n>0); l.innerHTML=a.length?a.map(([id,n])=>{const g=GEAR_BY_ID[id];const eq=gameData.equippedGear===id;return `<div class="equip-row ${eq?"equipped":""}"><b>${g.name}</b> ${eq?"<span class=badge>装備中</span>":""}<div class=small>${g.rarity} / ${g.effect}<br>所持：${n}</div><button onclick="toggleGear('${id}')">${eq?"外す":"装備する"}</button><button onclick="upgradeGear('${id}')">⬆️ アップグレード</button><button onclick="addMachine('${id}')">🏭 投入</button></div>`}).join(""):"<p>まだギアを持っていません。</p>";} window.toggleGear=id=>{if(!(gameData.gears[id]>0))return;gameData.equippedGear=gameData.equippedGear===id?null:id;saveGame();updateUI();renderGears()}; window.upgradeGear=id=>{const n=gameData.gears[id]||0,s=gameData.gearStars[id]||0;if(s>=30)return alert("★30が最大です！");if(n<2)return alert("同じギアが2個必要です！");gameData.gears[id]=n-2;gameData.gearStars[id]=s+1;saveGame();updateUI();renderGears()}; function renderMachine(){$("machine-slots").innerHTML=machineSelected.map((id,i)=>`<button class=modal-button onclick="removeMachine(${i})">${GEAR_BY_ID[id].name} (${GEAR_BY_ID[id].points}pt) ❌</button>`).join("")||"<p>投入なし</p>";$("machine-points").textContent=`合計ポイント：${machineSelected.reduce((s,id)=>s+GEAR_BY_ID[id].points,0)}pt`;$("machine-select-list").innerHTML=Object.entries(gameData.gears||{}).filter(([id,n])=>n>0).map(([id,n])=>`<button class=modal-button onclick="addMachine('${id}')">${GEAR_BY_ID[id].name}　所持:${n}</button>`).join("")} window.addMachine=id=>{if(machineSelected.length>=3||!(gameData.gears[id]>0))return;gameData.gears[id]--;machineSelected.push(id);renderMachine();renderGears();saveGame()}; window.removeMachine=i=>{const id=machineSelected[i];if(id)gameData.gears[id]=(gameData.gears[id]||0)+1;machineSelected.splice(i,1);renderMachine();renderGears();saveGame()}; function chooseWeighted(t){let r=Math.random()*100;for(const [id,p] of t){r-=p;if(r<0)return id}return t.at(-1)[0]} function machineTable(p){if(p>=45)return [["regen",90],["beast",5],["savior",5]];if(p>=20)return [["beast",50],["regen",29],["home",20],["savior",1]];if(p>=10)return [["critical",25],["hero",65],["superCritical",7.5],["beast",2.5]];return [["lightGlasses",30],["timeSlow",40],["critical",25],["hero",5]]} $("gear-button").addEventListener("click",()=>{renderGears();openModal("gear-modal")});$("gear-close").addEventListener("click",closeModals);$("machine-open").addEventListener("click",()=>{renderMachine();openModal("machine-modal")});$("machine-close").addEventListener("click",()=>{machineSelected.forEach(id=>gameData.gears[id]=(gameData.gears[id]||0)+1);machineSelected=[];saveGame();closeModals();updateUI()});$("machine-run").addEventListener("click",()=>{if(!machineSelected.length)return alert("ギアを投入してください！");const id=chooseWeighted(machineTable(machineSelected.reduce((s,x)=>s+GEAR_BY_ID[x].points,0)));gameData.gears[id]=(gameData.gears[id]||0)+1;machineSelected=[];$("machine-result").innerHTML=`🎉 ${GEAR_BY_ID[id].name} GET！`;renderMachine();renderGears();saveGame();updateUI()});$("gear-gacha-roll").addEventListener("click",()=>{if(gameData.gachaCoins<3)return alert("ガチャコインが3枚必要です！");gameData.gachaCoins-=3;const r=Math.random()*100;let id=r<1?["beast","regen","home"][Math.floor(Math.random()*3)]:r<4?"hero":["timeSlow","barrier","lightGlasses","others","self","bandage","critical","superCritical"][Math.floor(Math.random()*8)];gameData.gears[id]=(gameData.gears[id]||0)+1;$("gear-gacha-result").innerHTML=`🎉 ${GEAR_BY_ID[id].name} GET！`;saveGame();updateUI();renderGears()});
 /* ========================================
    装備 / バッグ
 ======================================== */
 
 function renderEquipment(){
     const list=$("equip-list");
-    if(!list)return;
-
-    const owned=Object.entries(gameData.ownedEquipment||{})
-        .filter(([id,count])=>Number(count)>0);
-
-    if(!owned.length){
-        list.innerHTML='<p style="padding:15px">まだ装備を持っていません。</p>';
-        return;
-    }
-
-    list.innerHTML=owned.map(([id,count])=>{
-        const e=(typeof EQUIPMENT!=="undefined")
-            ? EQUIPMENT.find(x=>x.id===id)
-            : null;
-        if(!e)return "";
-
-        const star=(gameData.equipmentStars&&gameData.equipmentStars[id])||0;
-        const equipped=Array.isArray(gameData.equipped)&&gameData.equipped.includes(id);
-
+    list.innerHTML=EQUIPMENT.map(e=>{
+        const owned=gameData.ownedEquipment[e.id]||0;
+        const equipped=gameData.equipped.includes(e.id);
         return `<div class="equip-row ${equipped?"equipped":""}">
-            <b>${e.name} ${star?`★${star}`:""}</b>
-            ${equipped?'<span class="badge">装備中</span>':""}
-            <div class="small">${e.effect||""}<br>所持：${count}</div>
-            <button onclick="toggleEquipment('${id}')">${equipped?"外す":"装備する"}</button>
-            <button onclick="upgradeEquipment('${id}')">⬆️ アップグレード</button>
-            <button onclick="sellEquipment('${id}')">売却 🪙</button>
-        </div>`;
+            <b>${e.name}</b> ${equipped?'<span class="badge">装備中</span>':""}<br>
+            <span class="small">${e.effect}<br>所持：${owned}</span><br>
+            ${owned?`<button onclick="toggleEquipment('${e.id}')">${equipped?"外す":"装備する"}</button>`:""}
+            <div style="clear:both"></div></div>`;
+    }).join("");
+
+    const gearList=$("gear-list");
+    gearList.innerHTML=Object.entries(gameData.ownedGear).filter(([,v])=>v>0).map(([id,count])=>{
+        const g=getGear(id), eq=gameData.equippedGear===id;
+        return `<div class="equip-row ${eq?"equipped":""}">
+            <b>${g?.name||id}</b> ${eq?'<span class="badge">装備中</span>':""}<br>
+            <span class="small">${g?.effect||""}<br>所持：${count} / ポイント：${getGearPoints(id)}</span><br>
+            <button onclick="toggleGear('${id}')">${eq?"外す":"装備する"}</button>
+            <div style="clear:both"></div></div>`;
+    }).join("") || `<div class="small">まだギアを持っていません。</div>`;
+
+    const turretList=$("turret-list");
+    turretList.innerHTML=Object.entries(gameData.turrets).map(([id,count])=>{
+        const t=TURRETS[id];
+        return `<div class="equip-row"><b>${t.name}</b><br><span class="small">所持：${count} / ${t.interval/1000}秒ごと</span></div>`;
     }).join("");
 }
-
+window.toggleGear=function(id){
+    if(!gameData.ownedGear[id])return;
+    gameData.equippedGear=(gameData.equippedGear===id?null:id);
+    saveGame(); renderEquipment(); updateUI(); startTurrets();
+};
 window.toggleEquipment=function(id){
-    if(!gameData.ownedEquipment || !gameData.ownedEquipment[id])return;
-    if(!Array.isArray(gameData.equipped))gameData.equipped=[];
-
-    const i=gameData.equipped.indexOf(id);
-    if(i>=0){
-        gameData.equipped.splice(i,1);
-    }else{
-        if(gameData.equipped.length>=3){
-            alert("装備は3個までです！");
-            return;
-        }
+    const index=gameData.equipped.indexOf(id);
+    if(index>=0) gameData.equipped.splice(index,1);
+    else{
+        if(gameData.equipped.length>=3){alert("装備できるのは3個まで！");return;}
+        if(!(gameData.ownedEquipment[id]||0))return;
         gameData.equipped.push(id);
     }
-    saveGame();
-    updateUI();
-    renderEquipment();
+    saveGame(); updateUI(); renderEquipment(); startTurrets();
 };
 
-window.upgradeEquipment=function(id){
-    if(!gameData.ownedEquipment)gameData.ownedEquipment={};
-    if(!gameData.equipmentStars)gameData.equipmentStars={};
-
-    const count=Number(gameData.ownedEquipment[id]||0);
-    const star=Number(gameData.equipmentStars[id]||0);
-
-    if(star>=30){alert("★30が最大です！");return;}
-    if(count<2){alert("同じ装備が2個必要です！");return;}
-
-    gameData.ownedEquipment[id]=count-2;
-    gameData.equipmentStars[id]=star+1;
-
-    saveGame();
-    updateUI();
-    renderEquipment();
-};
-
-window.sellEquipment=function(id){
-    const count=Number(gameData.ownedEquipment?.[id]||0);
-    if(count<=0)return;
-
-    gameData.ownedEquipment[id]=count-1;
-    gameData.gachaCoins=(Number(gameData.gachaCoins)||0)+1;
-
-    if(gameData.ownedEquipment[id]<=0){
-        delete gameData.ownedEquipment[id];
-        if(Array.isArray(gameData.equipped)){
-            gameData.equipped=gameData.equipped.filter(x=>x!==id);
-        }
-    }
-
-    saveGame();
-    updateUI();
-    renderEquipment();
-}
+/* ========================================
+   ガチャ
+======================================== */
 
 function rollGacha(){
-    if(gameData.gachaCoins<1){
-        alert("ガチャコインが足りない！");
+    if(gameData.gachaCoins<3){
+        alert("ガチャコインが足りない！ 1回3枚です。");
         return;
     }
-
-    gameData.gachaCoins--;
-
-    let item;
-
-    /* 氷の鎧だけ5%、残り12種を残り95%で均等 */
-    if(Math.random()<0.05){
-        item=EQUIPMENT[0];
-    }else{
-        const rest=EQUIPMENT.slice(1);
-        item=rest[Math.floor(Math.random()*rest.length)];
-    }
-
-    if(gameData.ownedEquipment[item.id]){
-        /* ダブり → コイン1枚 */
-        gameData.gachaCoins++;
-
-        $("gacha-result").innerHTML=
-            `🎯 ${item.name}<br>ダブり！ → 🪙 ガチャコイン1枚に変換`;
-    }else{
-        gameData.ownedEquipment[item.id]=1;
-
-        $("gacha-result").innerHTML=
-            `🎉 ${item.name} GET！<br>${item.effect}`;
-    }
-
-    saveGame();
-    updateUI();
+    gameData.gachaCoins-=3;
+    const item=gearRoll();
+    gameData.ownedGear[item.id]=(gameData.ownedGear[item.id]||0)+1;
+    $("gacha-result").innerHTML=`🎉 ${item.name} GET！<br>${item.effect}<br>ダブってもそのまま所持数+1`;
+    saveGame(); updateUI(); renderEquipment();
 }
-
 $("gacha-roll").addEventListener("click",rollGacha);
-
-window.buyTurret=(id,cost)=>{if(gameData.diamonds<cost)return alert("💎が足りません！");gameData.diamonds-=cost;gameData.turrets[id]=(gameData.turrets[id]||0)+1;saveGame();updateUI()};
 
 /* ========================================
    強化
@@ -888,6 +1051,12 @@ $("shop-close").addEventListener("click",closeModals);
    1体目からやり直す
    育成・装備・ゴールド・コイン・ストーリー既読は維持
 ======================================== */
+$("delete-data-button").addEventListener("click",()=>{
+    if(!confirm("本当に全データを削除しますか？\n装備・ギア・タレット・💎・コイン・強化・クリア回数も消えます。"))return;
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
+});
+
 $("restart-button").addEventListener("click",()=>{
     const ok=confirm("進行度だけを1体目に戻します。\nHP・攻撃力・装備・ゴールド・ガチャコイン・ストーリー既読はそのままです。\n\n1体目からやり直しますか？");
     if(!ok)return;
@@ -923,6 +1092,8 @@ $("restart-button").addEventListener("click",()=>{
 
 loadGame();
 
+if(!gameData.turrets.basic) gameData.turrets.basic=1;
+saveGame();
 createEnemy();
 
 /* 初回ストーリー */
