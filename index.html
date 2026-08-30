@@ -631,13 +631,6 @@ function buyTurret(id){
     gameData.turrets[id]=(gameData.turrets[id]||0)+1;
     saveGame(); renderEquipment(); updateUI(); startTurrets(); renderTurretShop();
 }
-function renderTurretShop(){
-    const el=$("turret-shop");
-    if(!el)return;
-    el.innerHTML=Object.entries(TURRETS).map(([id,t])=>
-        `<button class="modal-button" onclick="buyTurret('${id}')">${t.name}　💎${t.cost}　購入</button>`
-    ).join("");
-}
 window.buyTurret=buyTurret;
 
 /* ========================================
